@@ -1,10 +1,11 @@
-import {Project} from "ts-morph";
+import {FunctionDeclaration, Project} from "ts-morph";
+import {FunctionInstrumenter} from "../src/function-wrapper/wrapper";
 
-test("test function is generated correctly", async () => {
-    /*
+test("test function simple is generated correctly", async () => {
+
     const functionCode = `
     
-    function add(x:number, y:number) {
+    export function add(x:number, y:number) {
         return x + y
     }
     
@@ -14,16 +15,40 @@ test("test function is generated correctly", async () => {
         tsConfigFilePath: "tsconfig.json",
     });
     
-    const functionSource = project.createSourceFile("test.ts", functionCode)
+    const fileSource = project.createSourceFile("./test/test.ts", functionCode)
+    fileSource.saveSync()
+    const functionInstrumenter = new FunctionInstrumenter()
     
+    const result: FunctionDeclaration = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
+    /*
+    expect(result.getName()).toEqual("add")
+    expect(result.getParameters().map(p => p.getName()).join(",")).toEqual("x,y")
+    expect(result.getParameters().map(p => p.getType().getText()).join(",")).toEqual("number,number")
+    */
+    fileSource.deleteImmediatelySync()
+})
+
+test("test function with variable declaration is generated correctly", async () => {
+
+    const functionCode = `
     
-    const functionInstrumenter = new FunctionIntrumenter()
+    function test(param1,para2){
+        const var1 = param1
+        const var2 = function1(param2)
+        return var1 + var2;
+    }
     
-    const result = functionInstrumenter.instrument(functionSource)
-    
-    expect(result.functionName).toEqual("add")
-    expect(result.parameters.map(p => p.name).join(",")).toEqual("x,y")
-    expect(result.parameters.map(p => p.type).join(",")).toEqual("number,number")
-    
-     */
+    `
+
+    const project = new Project({
+        tsConfigFilePath: "tsconfig.json",
+    });
+
+    const fileSource = project.createSourceFile("./test/test.ts", functionCode)
+    fileSource.saveSync()
+    const functionInstrumenter = new FunctionInstrumenter()
+
+    const result: FunctionDeclaration = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
+
+    fileSource.deleteImmediatelySync()
 })
