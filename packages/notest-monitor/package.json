@@ -8,7 +8,10 @@
   },
   "scripts": {
     "build": "node esbuild",
-    "build:watch": "node esbuild -w"
+    "build:watch": "node esbuild -w",
+    "prepare": "npm run build",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "author": "",
   "license": "ISC",
