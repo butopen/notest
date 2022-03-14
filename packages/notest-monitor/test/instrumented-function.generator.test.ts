@@ -3,7 +3,7 @@ import {FunctionInstrumenter} from "../src/function-wrapper/wrapper";
 
 test("test function simple is generated correctly", async () => {
 
-    const functionCode = `
+  const functionCode = `
     
     export function add(x:number, y:number) {
         return x + y
@@ -11,44 +11,70 @@ test("test function simple is generated correctly", async () => {
     
     `
 
-    const project = new Project({
-        tsConfigFilePath: "tsconfig.json",
-    });
-    
-    const fileSource = project.createSourceFile("./test/test.ts", functionCode)
-    fileSource.saveSync()
-    const functionInstrumenter = new FunctionInstrumenter()
-    
-    const result: FunctionDeclaration = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
-    /*
-    expect(result.getName()).toEqual("add")
-    expect(result.getParameters().map(p => p.getName()).join(",")).toEqual("x,y")
-    expect(result.getParameters().map(p => p.getType().getText()).join(",")).toEqual("number,number")
-    */
-    fileSource.deleteImmediatelySync()
+  const project = new Project({
+    tsConfigFilePath: "tsconfig.json",
+  });
+
+  const fileSource = project.createSourceFile("./test/test.ts", functionCode)
+  fileSource.saveSync()
+  const functionInstrumenter = new FunctionInstrumenter()
+
+  const result: FunctionDeclaration = functionInstrumenter.instrument(fileSource.getFilePath(), "add")
+
+  expect(result.getName()).toEqual("add")
+  expect(result.getParameters().map(p => p.getName()).join(",")).toEqual("x,y")
+  expect(result.getParameters().map(p => p.getType().getText()).join(",")).toEqual("number,number")
+
+  fileSource.deleteImmediatelySync()
 })
 
 test("test function with variable declaration is generated correctly", async () => {
 
-    const functionCode = `
+  const functionCode = `
     
-    function test(param1,para2){
-        const var1 = param1
-        const var2 = function1(param2)
-        return var1 + var2;
+    function test(){
+        const var1 = 1
+        const {var3, var4, var5} = t.func(var1)
+        return var1;
     }
     
     `
 
-    const project = new Project({
-        tsConfigFilePath: "tsconfig.json",
-    });
+  const project = new Project({
+    tsConfigFilePath: "tsconfig.json",
+  });
 
-    const fileSource = project.createSourceFile("./test/test.ts", functionCode)
-    fileSource.saveSync()
-    const functionInstrumenter = new FunctionInstrumenter()
+  const fileSource = project.createSourceFile("./test/test.ts", functionCode)
+  fileSource.saveSync()
+  const functionInstrumenter = new FunctionInstrumenter()
 
-    const result: FunctionDeclaration = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
-
-    fileSource.deleteImmediatelySync()
+  const result: FunctionDeclaration = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
 })
+
+test("test function with nested statements is generated correctly", async () => {
+
+  const functionCode = `
+  
+    function test(){
+        while(var1 == 1){
+          const var2 = var1
+          var1 = var1 + 1
+          return var1
+        }
+        return var2
+    }
+    
+    `
+
+  const project = new Project({
+    tsConfigFilePath: "tsconfig.json",
+  });
+
+  const fileSource = project.createSourceFile("./test/test.ts", functionCode)
+  fileSource.saveSync()
+  const functionInstrumenter = new FunctionInstrumenter()
+
+  const result: FunctionDeclaration = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
+
+})
+
