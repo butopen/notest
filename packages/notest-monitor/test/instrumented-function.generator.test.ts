@@ -19,11 +19,12 @@ test("test function simple is generated correctly", async () => {
   fileSource.saveSync()
   const functionInstrumenter = new FunctionInstrumenter()
 
-  const result: FunctionDeclaration = functionInstrumenter.instrument(fileSource.getFilePath(), "add")
+  const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "add")
+  const instFunction = result.getFunctionOrThrow('add')
 
-  expect(result.getName()).toEqual("add")
-  expect(result.getParameters().map(p => p.getName()).join(",")).toEqual("x,y")
-  expect(result.getParameters().map(p => p.getType().getText()).join(",")).toEqual("number,number")
+  expect(instFunction.getName()).toEqual("add")
+  expect(instFunction.getParameters().map(p => p.getName()).join(",")).toEqual("x,y")
+  expect(instFunction.getParameters().map(p => p.getType().getText()).join(",")).toEqual("number,number")
 
   fileSource.deleteImmediatelySync()
 })
