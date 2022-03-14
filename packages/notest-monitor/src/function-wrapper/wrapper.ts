@@ -37,8 +37,7 @@ export class FunctionInstrumenter {
 
     wrapFile.organizeImports()
     wrapFile.formatText()
-    wrapFile.saveSync()
-    return wrapFunction
+    return wrapFile
   }
 
   private initialize(sourceFilePath: string, functionName: string) {
@@ -80,7 +79,7 @@ export class FunctionInstrumenter {
     )
   }
 
-  
+
   private instrumentStatementRec(wrapFunction: FunctionDeclaration, statement: Statement | Expression) {
     if (statement.getKind() == SyntaxKind.VariableStatement) {
       const variableStatement: VariableStatement = statement.asKindOrThrow(SyntaxKind.VariableStatement)
