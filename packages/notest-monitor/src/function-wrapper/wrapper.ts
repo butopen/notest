@@ -76,7 +76,6 @@ export class FunctionInstrumenter {
     })
 
     wrapFunc.addParameters(parameters)
-    return parameters;
   }
 
   private instrumentBody(wrapFunction: FunctionDeclaration) {
