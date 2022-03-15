@@ -1,13 +1,9 @@
-import {
-  Expression,
-  ExpressionStatement,
-  FunctionDeclaration,
-  Project,
-  ReturnStatement,
-  Statement,
-  SyntaxKind,
-  VariableStatement
-} from "ts-morph";
+import {FunctionDeclaration, Node, Project, SyntaxKind} from "ts-morph";
+
+import {VariableInstrumenter} from "./statements_instrumenters/variable_instrumenter";
+import {ExpressionInstrumenter} from "./statements_instrumenters/expression_instrumenter";
+import {ReturnInstrumenter} from "./statements_instrumenters/return_instrumenter";
+import {InstrumentStatementInterface} from "./statements_instrumenters/instrument_statement.interface";
 
 export class FunctionInstrumenter {
   private project: Project;
@@ -84,45 +80,31 @@ export class FunctionInstrumenter {
     )
   }
 
-
-  private instrumentStatementRec(wrapFunction: FunctionDeclaration, statement: Statement | Expression) {
-    if (statement.getKind() == SyntaxKind.VariableStatement) {
-      const variableStatement: VariableStatement = statement.asKindOrThrow(SyntaxKind.VariableStatement)
-      variableStatement.getDeclarations().forEach(declaration => {
-          statement.replaceWithText(writer =>
-            writer
-              .writeLine(statement.getFullText()).newLine()
-              .write(`collector.collect({
-                        timestamp: Date.now(),
-                        type: 'variable',
-                        value: ${declaration.getName()}})`)
-          )
-        }
-      )
-    } else if (statement.getKind() == SyntaxKind.ExpressionStatement) {
-      const expressionStatement: ExpressionStatement = statement.asKindOrThrow(SyntaxKind.ExpressionStatement)
-      const variableToCollect = expressionStatement.getFirstDescendantByKind(SyntaxKind.Identifier)?.getText()
-      statement.replaceWithText(writer =>
-        writer
-          .writeLine(statement.getFullText()).newLine()
-          .write(`collector.collect({
-                          timestamp: Date.now(),
-                          type: 'variableReplace',
-                          value: ${variableToCollect}})`)
-      )
-    } else if (statement.getKind() == SyntaxKind.ReturnStatement) {
-      const returnStatement: ReturnStatement = statement.asKindOrThrow(SyntaxKind.ReturnStatement)
-      returnStatement.replaceWithText(writer =>
-        writer.writeLine(`const output = ${returnStatement.getExpression()?.getText()}`).newLine()
-          .write(`collector.collect({
-                          timestamp: Date.now(),
-                          type: 'output',
-                          value: output})`)
-          .writeLine(`return output`)
-      )
+  private instrumentStatementRec(wrapFunction: FunctionDeclaration, node: Node) {
+    if (this.toBeInstrumented(node)) {
+      const instrumenter: InstrumentStatementInterface = this.setKind(node)
+      instrumenter.addCollector(node)
     } else {
-      statement.getDescendantStatements().forEach(
+      node.getChildren().forEach(
         childStatement => this.instrumentStatementRec(wrapFunction, childStatement))
+    }
+  }
+
+  private toBeInstrumented(node: Node): Boolean {
+    const statementsToInstrument = [SyntaxKind.VariableStatement, SyntaxKind.ExpressionStatement, SyntaxKind.ReturnStatement]
+    return statementsToInstrument.includes(node.getKind())
+  }
+
+  private setKind(node: Node) {
+    switch (node.getKind()) {
+      case SyntaxKind.VariableStatement:
+        return new VariableInstrumenter()
+      case SyntaxKind.ExpressionStatement:
+        return new ExpressionInstrumenter()
+      case SyntaxKind.ReturnStatement:
+        return new ReturnInstrumenter()
+      default:
+        throw new Error("Not Provided")
     }
   }
 }
