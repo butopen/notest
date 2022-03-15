@@ -1,6 +1,5 @@
 import {Expression, ExpressionStatement, Statement, SyntaxKind} from "ts-morph"
 import {InstrumentStatementInterface} from "./instrument_statement.interface";
-
 export class ExpressionInstrumenter implements InstrumentStatementInterface {
 
   addCollector(statement: Statement | Expression) {
