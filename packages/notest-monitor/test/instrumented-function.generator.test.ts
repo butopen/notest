@@ -61,6 +61,9 @@ test("test function with nested statements is generated correctly", async () => 
     function test(){
         while(var1 == 1){
           const var2 = var1
+          while(var1 == 1){
+            const var3 = 1
+          }
         }
     }
     
@@ -79,7 +82,7 @@ test("test function with nested statements is generated correctly", async () => 
     .getFunctionOrThrow("test")
     .getStatementByKindOrThrow(SyntaxKind.WhileStatement)
     .getDescendantStatements().length
-  expect(numberStatementNestedInWhileStatement).toBe(2) // variable statement + expression collect()
+  expect(numberStatementNestedInWhileStatement).toBe(5) // 2 variable statement + 2 expression collect() + nested while
   // result.saveSync()
   fileSource.deleteImmediatelySync()
 })
