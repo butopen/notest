@@ -27,9 +27,11 @@ export class FunctionInstrumenter {
     })
 
     // Add body
-    wrapFunction.addStatements(sourceFunction.getBodyText()!)
+    if (sourceFunction.getBodyText())
+      wrapFunction.addStatements(sourceFunction.getBodyText()!)
+    else throw new Error("Function hasn't body")
 
-    // Instrument input
+    // Instrument input parameters
     this.setParametersCollectors(sourceFunction, wrapFunction)
 
     // Instrument body
@@ -45,10 +47,14 @@ export class FunctionInstrumenter {
     const sourceFunction = sourceFile.getFunctionOrThrow(functionName)
 
     const pathWrapFile = `${sourceFile.getDirectoryPath()}/instrumentation/${sourceFile.getBaseName()}`
-    const wrapFile = this.project.createSourceFile(pathWrapFile)
+
+    let wrapFile = this.project.getSourceFile(pathWrapFile)
+
+    if (!wrapFile)
+      wrapFile = this.project.createSourceFile(pathWrapFile)
 
     if (wrapFile.getFunction(functionName)) {
-      throw new Error('Exit because case function already exist not handled (Work in progress)')
+      throw new Error('Exit because function already exist case not handled (Work in progress)')
     }
 
     const wrapFunction = wrapFile.addFunction({name: functionName, isExported: true})
