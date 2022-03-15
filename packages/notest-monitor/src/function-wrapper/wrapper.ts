@@ -79,8 +79,8 @@ export class FunctionInstrumenter {
   }
 
   private instrumentBody(wrapFunction: FunctionDeclaration) {
-    wrapFunction.getStatements().forEach(
-      statement => this.instrumentStatementRec(wrapFunction, statement)
+    wrapFunction.getChildren().forEach(
+      child => this.instrumentStatementRec(wrapFunction, child)
     )
   }
 
