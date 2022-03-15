@@ -1,7 +1,7 @@
 import {Project, SourceFile, SyntaxKind} from "ts-morph";
 import {FunctionInstrumenter} from "../src/function-wrapper/wrapper";
 
-test("test function simple is generated correctly", async () => {
+test("test simple function", async () => {
 
   const functionCode = `
     
@@ -20,16 +20,19 @@ test("test function simple is generated correctly", async () => {
   const functionInstrumenter = new FunctionInstrumenter()
 
   const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "add")
+  result.saveSync()
+  
   const instFunction = result.getFunctionOrThrow('add')
-
+  
   expect(instFunction.getName()).toEqual("add")
   expect(instFunction.getParameters().map(p => p.getName()).join(",")).toEqual("x,y")
   expect(instFunction.getParameters().map(p => p.getType().getText()).join(",")).toEqual("number,number")
 
   fileSource.deleteImmediatelySync()
+  result.deleteImmediatelySync()
 })
 
-test("test function with variable declaration is generated correctly", async () => {
+test("test function with variable declaration", async () => {
 
   const functionCode = `
     
@@ -54,7 +57,7 @@ test("test function with variable declaration is generated correctly", async () 
   fileSource.deleteImmediatelySync()
 })
 
-test("test function with nested statements is generated correctly", async () => {
+test("test function with nested statements", async () => {
 
   const functionCode = `
   
