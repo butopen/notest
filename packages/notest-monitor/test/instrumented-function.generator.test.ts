@@ -31,7 +31,6 @@ describe(`Testing Instrumentation Functions`, () => {
     const functionInstrumenter = new FunctionInstrumenter()
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "add")
-    result.saveSync()
 
     const instFunction = result.getFunctionOrThrow('add')
 
@@ -114,8 +113,9 @@ describe(`Testing Instrumentation Functions`, () => {
 
   function cleanTestSpace() {
     const file = project.getSourceFile("./test/test.ts")
-    const wrap = project.getSourceFile("/test/instrumentation/test.ts")
     if (file) file.deleteImmediatelySync()
+
+    const wrap = project.getSourceFile("./test/instrumentation/test.ts")
     if (wrap) wrap.deleteImmediatelySync()
   }
 })
