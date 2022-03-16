@@ -4,6 +4,7 @@ import {VariableInstrumenter} from "./statements_instrumenters/variable_instrume
 import {ExpressionInstrumenter} from "./statements_instrumenters/expression_instrumenter";
 import {ReturnInstrumenter} from "./statements_instrumenters/return_instrumenter";
 import {InstrumentStatementInterface} from "./statements_instrumenters/instrument_statement.interface";
+import {InfoAdderForCollector} from "./statements_instrumenters/info_adder_for_collector";
 
 export class FunctionInstrumenter {
   private project: Project;
@@ -65,10 +66,12 @@ export class FunctionInstrumenter {
         name: param.getName(),
         type: param.getType().getText()
       })
-      wrapFunc.insertStatements(0, `collector.collect({ 
-      timestamp: Date.now(),
-      type: 'input',
-      value: ${param.getName()} })`)
+      wrapFunc.insertStatements(0,
+        InfoAdderForCollector.addInfo(
+          param.getName(),
+          'input',
+          wrapFunc.getStartLineNumber())
+      )
     })
 
     wrapFunc.addParameters(parameters)

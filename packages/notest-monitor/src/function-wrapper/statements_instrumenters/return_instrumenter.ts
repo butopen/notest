@@ -10,7 +10,12 @@ export class ReturnInstrumenter implements InstrumentStatementInterface {
     returnStatement.replaceWithText(writer =>
       writer
         .writeLine(`const output = ${output}`).newLine()
-        .write(`collector.collect(${InfoAdderForCollector.addInfo(output, "output")})`)
+        .write(
+          InfoAdderForCollector.addInfo(
+            output,
+            "output",
+            returnStatement.getStartLineNumber())
+        )
         .writeLine(`return output`)
     )
   }

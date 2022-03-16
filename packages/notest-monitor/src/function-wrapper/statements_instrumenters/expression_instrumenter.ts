@@ -10,7 +10,12 @@ export class ExpressionInstrumenter implements InstrumentStatementInterface {
     statement.replaceWithText(writer =>
       writer
         .writeLine(statement.getFullText()).newLine()
-        .write(`collector.collect(${InfoAdderForCollector.addInfo(variableToCollect, "expression")})`)
+        .write(
+          InfoAdderForCollector.addInfo(
+            variableToCollect,
+            "expression",
+            expressionStatement.getStartLineNumber())
+        )
     )
   }
 }

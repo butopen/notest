@@ -10,7 +10,12 @@ export class VariableInstrumenter implements InstrumentStatementInterface {
         statement.replaceWithText(writer =>
           writer
             .writeLine(statement.getFullText()).newLine()
-            .write(`collector.collect(${InfoAdderForCollector.addInfo(declaration.getName(), "variable")})`)
+            .write(
+              InfoAdderForCollector.addInfo(
+                declaration.getName(),
+                "variable",
+                variableStatement.getStartLineNumber())
+            )
         )
       }
     )
