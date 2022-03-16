@@ -27,11 +27,11 @@ export class FunctionInstrumenter {
       wrapFunction.addStatements(sourceFunction.getBodyText()!)
     else throw new Error("Function hasn't body")
 
-    // Instrument input parameters
-    this.setParametersCollectors(sourceFunction, wrapFunction)
-
     // Instrument body
     this.instrumentBody(wrapFunction)
+
+    // Instrument input parameters
+    this.setParametersCollectors(sourceFunction, wrapFunction)
 
     wrapFile.organizeImports()
     wrapFile.formatText()
