@@ -1,5 +1,4 @@
-import {FunctionDeclaration, Node, Project, SyntaxKind} from "ts-morph";
-
+import {FunctionDeclaration, Node, Project, SourceFile, SyntaxKind} from "ts-morph";
 import {VariableInstrumenter} from "./statements_instrumenters/variable_instrumenter";
 import {ExpressionInstrumenter} from "./statements_instrumenters/expression_instrumenter";
 import {ReturnInstrumenter} from "./statements_instrumenters/return_instrumenter";
@@ -18,21 +17,19 @@ export class FunctionInstrumenter {
   instrument(sourceFilePath: string, functionName: string) {
     const {sourceFile, sourceFunction, wrapFile, wrapFunction} = this.initialize(sourceFilePath, functionName)
 
-    // Add imports
-    sourceFile.getImportDeclarations().forEach(imp => {
-      wrapFile.insertStatements(0, imp.getFullText())
-    })
+    this.addImports(sourceFile, wrapFile)
 
     // Add body
     if (sourceFunction.getBodyText())
       wrapFunction.addStatements(sourceFunction.getBodyText()!)
     else throw new Error("Function hasn't body")
 
-    // Instrument body
     this.instrumentBody(wrapFunction)
 
     // Instrument input parameters
     this.setParametersCollectors(sourceFunction, wrapFunction)
+
+    this.handleWrapperBoundDeclarations(wrapFunction)
 
     wrapFile.organizeImports()
     wrapFile.formatText()
@@ -109,5 +106,23 @@ export class FunctionInstrumenter {
       default:
         throw new Error("Not Provided")
     }
+  }
+
+  private handleWrapperBoundDeclarations(wrapFunction: FunctionDeclaration) {
+    // Add constant for collector (after all to not instrument it)
+    wrapFunction.insertStatements(0, `const eventsToCollect: CollectEvent[] = []`)
+
+    // Handle case of function without statement
+    if (!wrapFunction.getDescendantsOfKind(SyntaxKind.ReturnStatement).length)
+      wrapFunction.addStatements('collector.collect(eventsToCollect)')
+  }
+
+  private addImports(sourceFile: SourceFile, wrapFile: SourceFile) {
+    sourceFile.getImportDeclarations().forEach(imp => {
+      wrapFile.insertStatements(0, imp.getFullText())
+    })
+    wrapFile.insertStatements(0, writer =>
+      writer.write(`import collector from '@butopen/notest-collector/dist'`)
+        .write(`import CollectEvent from '@butopen/notest-collector/dist'`))
   }
 }
