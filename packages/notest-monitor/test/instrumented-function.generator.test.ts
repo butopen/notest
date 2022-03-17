@@ -16,11 +16,11 @@ describe(`Testing Instrumentation Functions`, () => {
     cleanTestSpace()
   })
 
-  test("test simple function", async () => {
+  test("test function with parameters", async () => {
 
     const functionCode = `
     
-    export function add(x:number, y:number) {
+    export function test(x:number, y:number) {
         return x + y
     }
     
@@ -30,14 +30,14 @@ describe(`Testing Instrumentation Functions`, () => {
     fileSource.saveSync()
     const functionInstrumenter = new FunctionInstrumenter()
 
-    const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "add")
+    const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
 
-    const instFunction = result.getFunctionOrThrow('add')
+    const instFunction = result.getFunctionOrThrow("test")
 
-    expect(instFunction.getName()).toEqual("add")
+    expect(instFunction.getName()).toEqual("test")
     expect(instFunction.getParameters().map(p => p.getName()).join(",")).toEqual("x,y")
     expect(instFunction.getParameters().map(p => p.getType().getText()).join(",")).toEqual("number,number")
-    expect(instFunction.getStatements().length).toBe(5) // return + collector + declaration output + 2 parameter collector
+    expect(instFunction.getStatements().length).toBe(7)
   })
 
   test("test function with variable declaration", async () => {
@@ -57,7 +57,7 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
     const instFunction = result.getFunctionOrThrow("test")
-    expect(instFunction.getStatements().length).toBe(2 + 2) // 2 variable Statement, 2 expression collect()
+    expect(instFunction.getStatements().length).toBe(2 + 2 + 2) // 2 variable Statement, 2 expression collect() 2 bound stat
   })
 
   test("test function with nested statements", async () => {
@@ -108,14 +108,41 @@ describe(`Testing Instrumentation Functions`, () => {
     const numberOfImports = result.getFunctionOrThrow("test")
       .getParent().getChildrenOfKind(SyntaxKind.ImportDeclaration).length
 
-    expect(numberOfImports).toBe(1)
+    expect(numberOfImports).toBe(2) // 1 import for collector 1 import util
   })
 
   function cleanTestSpace() {
     const file = project.getSourceFile("./test/test.ts")
-    if (file) file.deleteImmediatelySync()
+    if (file) {
+      file.deleteImmediatelySync()
+      file.forget()
+    }
 
     const wrap = project.getSourceFile("./test/instrumentation/test.ts")
-    if (wrap) wrap.deleteImmediatelySync()
+    if (wrap) {
+      wrap.deleteImmediatelySync()
+      wrap.forget()
+    }
   }
+
+  test("test function with expression", async () => {
+
+    const functionCode = `
+  
+    function test(){
+      var1 = var1 + var2
+      f.doSom()
+      var2 = f.doSom()
+    }
+    
+    `
+
+    const fileSource = project.createSourceFile("./test/test.ts", functionCode)
+    fileSource.saveSync()
+    const functionInstrumenter = new FunctionInstrumenter()
+
+    const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
+    const instFunction = result.getFunctionOrThrow("test")
+    expect(instFunction.getStatements().length).toBe(10)
+  })
 })
