@@ -14,6 +14,11 @@ export class FunctionInstrumenter {
     });
   }
 
+  instrumentFileFunctions(path: string) {
+    const functions = this.project.getSourceFileOrThrow(path).getFunctions()
+    functions.forEach(func => this.instrument(path, func.getNameOrThrow()))
+  }
+
   instrument(sourceFilePath: string, functionName: string) {
     const {sourceFile, sourceFunction, wrapFile, wrapFunction} = this.initialize(sourceFilePath, functionName)
 
