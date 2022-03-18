@@ -1,10 +1,10 @@
-import {Expression, Statement, SyntaxKind, VariableStatement} from "ts-morph"
+import {FunctionDeclaration, Statement, SyntaxKind, VariableStatement} from "ts-morph"
 import {InstrumentStatementInterface} from "./instrument_statement.interface";
-import {InfoAdderForCollector} from "./info_adder_for_collector";
+import {InfoAdderForCollector} from "../info_adder_for_collector";
 
 export class VariableInstrumenter implements InstrumentStatementInterface {
 
-  addCollector(statement: Statement | Expression) {
+  addCollector(statement: Statement, wrapFunction: FunctionDeclaration) {
     const variableStatement: VariableStatement = statement.asKindOrThrow(SyntaxKind.VariableStatement)
     variableStatement.getDeclarations().forEach(declaration => {
         statement.replaceWithText(writer =>
@@ -14,6 +14,7 @@ export class VariableInstrumenter implements InstrumentStatementInterface {
               InfoAdderForCollector.addInfo(
                 declaration.getName(),
                 "variable",
+                wrapFunction.getName()!,
                 variableStatement.getStartLineNumber())
             )
         )

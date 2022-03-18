@@ -3,7 +3,7 @@ import {VariableInstrumenter} from "./statements_instrumenters/variable_instrume
 import {ExpressionInstrumenter} from "./statements_instrumenters/expression_instrumenter";
 import {ReturnInstrumenter} from "./statements_instrumenters/return_instrumenter";
 import {InstrumentStatementInterface} from "./statements_instrumenters/instrument_statement.interface";
-import {InfoAdderForCollector} from "./statements_instrumenters/info_adder_for_collector";
+import {InfoAdderForCollector} from "./info_adder_for_collector";
 
 export class FunctionInstrumenter {
   private project: Project;
@@ -67,6 +67,7 @@ export class FunctionInstrumenter {
         InfoAdderForCollector.addInfo(
           param.getName(),
           'input',
+          wrapFunc.getName()!,
           wrapFunc.getStartLineNumber())
       )
     })
@@ -83,7 +84,7 @@ export class FunctionInstrumenter {
   private instrumentStatementRec(wrapFunction: FunctionDeclaration, node: Node) {
     if (this.toBeInstrumented(node)) {
       const instrumenter: InstrumentStatementInterface = this.setKind(node)
-      instrumenter.addCollector(node)
+      instrumenter.addCollector(node, wrapFunction)
     } else {
       node.getChildren().forEach(
         childStatement => this.instrumentStatementRec(wrapFunction, childStatement))
@@ -122,7 +123,7 @@ export class FunctionInstrumenter {
       wrapFile.insertStatements(0, imp.getFullText())
     })
     wrapFile.insertStatements(0, writer =>
-      writer.write(`import collector from '@butopen/notest-collector/dist'`)
+      writer.write(`import collector from '@butopen/notest-collector/dist'`).newLine()
         .write(`import CollectEvent from '@butopen/notest-collector/dist'`))
   }
 }
