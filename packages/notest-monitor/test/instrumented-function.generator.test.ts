@@ -1,4 +1,4 @@
-import {Project, SourceFile, SyntaxKind} from "ts-morph";
+import {FunctionDeclaration, Project, SourceFile, SyntaxKind} from "ts-morph";
 import {FunctionInstrumenter} from "../src/function-wrapper/wrapper";
 
 
@@ -31,13 +31,12 @@ describe(`Testing Instrumentation Functions`, () => {
     const functionInstrumenter = new FunctionInstrumenter()
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
-
     const instFunction = result.getFunctionOrThrow("test")
 
     expect(instFunction.getName()).toEqual("test")
     expect(instFunction.getParameters().map(p => p.getName()).join(",")).toEqual("x,y")
     expect(instFunction.getParameters().map(p => p.getType().getText()).join(",")).toEqual("number,number")
-    expect(instFunction.getStatements().length).toBe(7)
+    controlStatementsNumber(instFunction, 2, 4, 1)
   })
 
   test("test function with variable declaration", async () => {
@@ -57,7 +56,7 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
     const instFunction = result.getFunctionOrThrow("test")
-    expect(instFunction.getStatements().length).toBe(2 + 2 + 2) // 2 variable Statement, 2 expression collect() 2 bound stat
+    controlStatementsNumber(instFunction, 3, 3, 0)
   })
 
   test("test function with nested statements", async () => {
@@ -80,11 +79,13 @@ describe(`Testing Instrumentation Functions`, () => {
     const functionInstrumenter = new FunctionInstrumenter()
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
+    const instFunction = result.getFunctionOrThrow("test")
     const numberStatementNestedInWhileStatement = result
       .getFunctionOrThrow("test")
       .getStatementByKindOrThrow(SyntaxKind.WhileStatement)
       .getDescendantStatements().length
-    expect(numberStatementNestedInWhileStatement).toBe(5) // 2 variable statement + 2 expression collect() + nested while
+    expect(numberStatementNestedInWhileStatement).toBe(5)
+    controlStatementsNumber(instFunction, 3, 3, 0)
   })
 
   test("test that only used import is generated", async () => {
@@ -111,20 +112,6 @@ describe(`Testing Instrumentation Functions`, () => {
     expect(numberOfImports).toBe(2) // 1 import for collector 1 import util
   })
 
-  function cleanTestSpace() {
-    const file = project.getSourceFile("./test/test.ts")
-    if (file) {
-      file.deleteImmediatelySync()
-      file.forget()
-    }
-
-    const wrap = project.getSourceFile("./test/instrumentation/test.ts")
-    if (wrap) {
-      wrap.deleteImmediatelySync()
-      wrap.forget()
-    }
-  }
-
   test("test function with expression", async () => {
 
     const functionCode = `
@@ -143,6 +130,26 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
     const instFunction = result.getFunctionOrThrow("test")
-    expect(instFunction.getStatements().length).toBe(7)
+    controlStatementsNumber(instFunction, 1, 6, 0)
   })
+
+  function cleanTestSpace() {
+    const file = project.getSourceFile("./test/test.ts")
+    if (file) {
+      file.deleteImmediatelySync()
+      file.forget()
+    }
+
+    const wrap = project.getSourceFile("./test/instrumentation/test.ts")
+    if (wrap) {
+      wrap.deleteImmediatelySync()
+      wrap.forget()
+    }
+  }
+
+  function controlStatementsNumber(functionInst: FunctionDeclaration, variable: number, expression: number, return_: number) {
+    expect(functionInst.getDescendantsOfKind(SyntaxKind.VariableStatement).length).toBe(variable)
+    expect(functionInst.getDescendantsOfKind(SyntaxKind.ExpressionStatement).length).toBe(expression)
+    expect(functionInst.getDescendantsOfKind(SyntaxKind.ReturnStatement).length).toBe(return_)
+  }
 })
