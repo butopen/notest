@@ -17,7 +17,8 @@
   "license": "ISC",
   "dependencies": {
     "ts-morph": "^14.0.0",
-    "@butopen/notest-collector": "workspace:*"
+    "@butopen/notest-collector": "workspace:*",
+    "chokidar": "^3.5.3"
   },
   "devDependencies": {
     "@types/jest": "^27.4.1",
