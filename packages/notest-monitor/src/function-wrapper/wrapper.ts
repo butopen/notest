@@ -82,12 +82,11 @@ export class FunctionInstrumenter {
   }
 
   private instrumentStatementRec(wrapFunction: FunctionDeclaration, node: Node) {
+    node.getChildren().forEach(
+      childStatement => this.instrumentStatementRec(wrapFunction, childStatement))
     if (this.toBeInstrumented(node)) {
       const instrumenter: InstrumentStatementInterface = this.setKind(node)
       instrumenter.addCollector(node, wrapFunction)
-    } else {
-      node.getChildren().forEach(
-        childStatement => this.instrumentStatementRec(wrapFunction, childStatement))
     }
   }
 

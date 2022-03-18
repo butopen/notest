@@ -143,6 +143,6 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
     const instFunction = result.getFunctionOrThrow("test")
-    expect(instFunction.getStatements().length).toBe(10)
+    expect(instFunction.getStatements().length).toBe(7)
   })
 })

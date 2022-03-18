@@ -12,7 +12,7 @@ export class ReturnInstrumenter implements InstrumentStatementInterface {
         .writeLine(`const output = ${output}`).newLine()
         .write(
           InfoAdderForCollector.addInfo(
-            output,
+            'output',
             "output",
             wrapFunction.getName()!,
             returnStatement.getStartLineNumber())

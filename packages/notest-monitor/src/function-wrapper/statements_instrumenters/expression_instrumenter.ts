@@ -1,21 +1,13 @@
-import {Expression, ExpressionStatement, Statement, SyntaxKind} from "ts-morph"
+import {Expression, ExpressionStatement, FunctionDeclaration, SyntaxKind} from "ts-morph"
 import {InstrumentStatementInterface} from "./instrument_statement.interface";
-import {InfoAdderForCollector} from "./info_adder_for_collector";
+import {InfoAdderForCollector} from "../info_adder_for_collector";
 
 export class ExpressionInstrumenter implements InstrumentStatementInterface {
 
-  addCollector(statement: Statement | Expression) {
+  addCollector(statement: Expression, wrapFunction: FunctionDeclaration) {
     const expressionStatement: ExpressionStatement = statement.asKindOrThrow(SyntaxKind.ExpressionStatement)
-    const expression = expressionStatement.getExpression().getText(false)
     statement.replaceWithText(writer => {
-        writer
-          .writeLine(statement.getFullText()).newLine()
-          .write(
-            InfoAdderForCollector.addInfo(
-              `'${expression}'`,
-              "expression",
-              expressionStatement.getStartLineNumber())
-          )
+        writer.writeLine(statement.getFullText()).newLine()
         if (expressionStatement.getChildren()[0].getKind() == SyntaxKind.BinaryExpression) {
           const variableToCollect = expressionStatement.getFirstDescendantByKindOrThrow(SyntaxKind.Identifier).getText()
           writer.newLine()
@@ -23,6 +15,7 @@ export class ExpressionInstrumenter implements InstrumentStatementInterface {
               InfoAdderForCollector.addInfo(
                 variableToCollect,
                 "variable",
+                wrapFunction.getName()!,
                 expressionStatement.getStartLineNumber())
             )
         }
