@@ -20,7 +20,7 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const functionCode = `
     
-    export function test(x:number, y:number) {
+    export function testFunction(x:number, y:number) {
         return x + y
     }
     
@@ -30,20 +30,19 @@ describe(`Testing Instrumentation Functions`, () => {
     fileSource.saveSync()
     const functionInstrumenter = new FunctionInstrumenter()
 
-    const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
-    const instFunction = result.getFunctionOrThrow("test")
-
-    expect(instFunction.getName()).toEqual("test")
+    const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
+    const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
+    expect(instFunction.getName()).toEqual("testFunctionInstrumented")
     expect(instFunction.getParameters().map(p => p.getName()).join(",")).toEqual("x,y")
     expect(instFunction.getParameters().map(p => p.getType().getText()).join(",")).toEqual("number,number")
-    controlStatementsNumber(instFunction, 2, 4, 1)
+    controlStatementsNumber(instFunction, 1, 3, 1)
   })
 
   test("test function with variable declaration", async () => {
 
     const functionCode = `
     
-    function test(){
+    function testFunction(){
         const var1 = 1
         const {var3, var4, var5} = t.func(var1)
     }
@@ -54,16 +53,16 @@ describe(`Testing Instrumentation Functions`, () => {
     fileSource.saveSync()
     const functionInstrumenter = new FunctionInstrumenter()
 
-    const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
-    const instFunction = result.getFunctionOrThrow("test")
-    controlStatementsNumber(instFunction, 3, 3, 0)
+    const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
+    const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
+    controlStatementsNumber(instFunction, 2, 2, 0)
   })
 
   test("test function with nested statements", async () => {
 
     const functionCode = `
   
-    function test(){
+    function testFunction(){
         while(var1 == 1){
           const var2 = var1
           while(var1 == 1){
@@ -78,14 +77,14 @@ describe(`Testing Instrumentation Functions`, () => {
     fileSource.saveSync()
     const functionInstrumenter = new FunctionInstrumenter()
 
-    const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
-    const instFunction = result.getFunctionOrThrow("test")
+    const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
+    const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
     const numberStatementNestedInWhileStatement = result
-      .getFunctionOrThrow("test")
+      .getFunctionOrThrow("testFunctionInstrumented")
       .getStatementByKindOrThrow(SyntaxKind.WhileStatement)
       .getDescendantStatements().length
     expect(numberStatementNestedInWhileStatement).toBe(5)
-    controlStatementsNumber(instFunction, 3, 3, 0)
+    controlStatementsNumber(instFunction, 2, 2, 0)
   })
 
   test("test that only used import is generated", async () => {
@@ -95,7 +94,7 @@ describe(`Testing Instrumentation Functions`, () => {
     import f1 from 'path1'
     import f2 from 'path2'
     
-    function test(){
+    function testFunction(){
         f1.doSomething()
     }
 
@@ -105,18 +104,17 @@ describe(`Testing Instrumentation Functions`, () => {
     fileSource.saveSync()
     const functionInstrumenter = new FunctionInstrumenter()
 
-    const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
-    const numberOfImports = result.getFunctionOrThrow("test")
+    const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
+    const numberOfImports = result.getFunctionOrThrow("testFunctionInstrumented")
       .getParent().getChildrenOfKind(SyntaxKind.ImportDeclaration).length
-
-    expect(numberOfImports).toBe(2) // 1 import for collector 1 import util
+    expect(numberOfImports).toBe(3)
   })
 
   test("test function with expression", async () => {
 
     const functionCode = `
   
-    function test(){
+    function testFunction(){
       var1 = var1 + var2
       f.doSom()
       var2 = f.doSom()
@@ -128,9 +126,9 @@ describe(`Testing Instrumentation Functions`, () => {
     fileSource.saveSync()
     const functionInstrumenter = new FunctionInstrumenter()
 
-    const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "test")
-    const instFunction = result.getFunctionOrThrow("test")
-    controlStatementsNumber(instFunction, 1, 6, 0)
+    const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
+    const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
+    controlStatementsNumber(instFunction, 0, 5, 0)
   })
 
   function cleanTestSpace() {
