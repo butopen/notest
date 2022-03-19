@@ -74,6 +74,7 @@ export class FunctionInstrumenter {
           param.getName(),
           'input',
           wrapFunc.getName()!,
+          wrapFunc.getSourceFile().getBaseName(),
           wrapFunc.getStartLineNumber())
       )
     })

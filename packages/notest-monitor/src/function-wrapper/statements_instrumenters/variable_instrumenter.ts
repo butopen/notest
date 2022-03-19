@@ -15,6 +15,7 @@ export class VariableInstrumenter implements InstrumentStatementInterface {
                 declaration.getName(),
                 "variable",
                 wrapFunction.getName()!,
+                wrapFunction.getSourceFile().getBaseName(),
                 variableStatement.getStartLineNumber())
             )
         )
