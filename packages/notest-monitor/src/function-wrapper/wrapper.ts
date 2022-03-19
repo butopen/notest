@@ -22,7 +22,7 @@ export class FunctionInstrumenter {
   instrument(sourceFilePath: string, functionName: string) {
     const {sourceFile, sourceFunction, wrapFile, wrapFunction} = this.initialize(sourceFilePath, functionName)
 
-    this.addImports(sourceFile, wrapFile)
+    this.addImports(sourceFile, wrapFile, sourceFunction)
 
     // Add body
     if (sourceFunction.getBodyText())
@@ -34,7 +34,7 @@ export class FunctionInstrumenter {
     // Instrument input parameters
     this.setParametersCollectors(sourceFunction, wrapFunction)
 
-    this.handleWrapperBoundDeclarations(wrapFunction)
+    this.setFunctionReturnOption(sourceFile, wrapFile, wrapFunction, sourceFunction)
 
     wrapFile.organizeImports()
     wrapFile.formatText()
@@ -44,6 +44,7 @@ export class FunctionInstrumenter {
   private initialize(sourceFilePath: string, functionName: string) {
     const sourceFile = this.project.getSourceFileOrThrow(sourceFilePath)
     const sourceFunction = sourceFile.getFunctionOrThrow(functionName)
+    functionName = functionName + 'Instrumented'
 
     const pathWrapFile = `${sourceFile.getDirectoryPath()}/instrumentation/${sourceFile.getBaseName()}`
 
@@ -113,21 +114,31 @@ export class FunctionInstrumenter {
     }
   }
 
-  private handleWrapperBoundDeclarations(wrapFunction: FunctionDeclaration) {
-    // Add constant for collector (after all to not instrument it)
-    wrapFunction.insertStatements(0, `const eventsToCollect: CollectEvent[] = []`)
-
-    // Handle case of function without statement
-    if (!wrapFunction.getDescendantsOfKind(SyntaxKind.ReturnStatement).length)
-      wrapFunction.addStatements('collector.collect(eventsToCollect)')
-  }
-
-  private addImports(sourceFile: SourceFile, wrapFile: SourceFile) {
+  private addImports(sourceFile: SourceFile, wrapFile: SourceFile, sourceFunction: FunctionDeclaration) {
     sourceFile.getImportDeclarations().forEach(imp => {
       wrapFile.insertStatements(0, imp.getFullText())
     })
     wrapFile.insertStatements(0, writer =>
-      writer.write(`import collector from '@butopen/notest-collector/dist'`).newLine()
-        .write(`import CollectEvent from '@butopen/notest-collector/dist'`))
+      writer
+        .write(`import collector from '@butopen/notest-collector/dist'`).newLine()
+        .write(`import CollectEvent from '@butopen/notest-collector/dist'`).newLine()
+        .write(`import {instrumentationRules} from '../../src/function-wrapper/instrumentation-rules/instrumentation-rules'`).newLine()
+        .write(`import {${sourceFunction.getName()} as ${sourceFunction.getName()}Real} from '${sourceFile.getFilePath().slice(0, -3)}'`))
+  }
+
+  private setFunctionReturnOption(sourceFile: SourceFile, wrapFile: SourceFile,
+                                  wrapFunction: FunctionDeclaration, sourceFunction: FunctionDeclaration) {
+
+    const functionOption = wrapFile.addFunction({name: "whatToReturn"})
+    functionOption.addStatements(writer =>
+      writer
+        .write(`if (instrumentationRules.check(`)
+        .write(`{path: '${sourceFile.getFilePath().slice(0, -3)}', name: '${sourceFunction.getName()}'}`)
+        .write(`))`)
+        .write(`return ${sourceFunction.getName()}Real`).newLine()
+        .write('else').newLine()
+        .write(`return ${wrapFunction.getName()}`))
+
+    wrapFile.addStatements(`export const ${sourceFunction.getName()} = whatToReturn()`)
   }
 }
