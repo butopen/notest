@@ -1,5 +1,5 @@
 export interface CollectEvent {
-  type: "input" | "output" | "variable" | "expression",
+  type: "input" | "output" | "variable" | "expression" | "exception",
   value: any,
   line: number,
   function: string,

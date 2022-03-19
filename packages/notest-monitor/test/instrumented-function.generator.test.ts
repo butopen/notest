@@ -35,7 +35,7 @@ describe(`Testing Instrumentation Functions`, () => {
     expect(instFunction.getName()).toEqual("testFunctionInstrumented")
     expect(instFunction.getParameters().map(p => p.getName()).join(",")).toEqual("x,y")
     expect(instFunction.getParameters().map(p => p.getType().getText()).join(",")).toEqual("number,number")
-    controlStatementsNumber(instFunction, 1, 3, 1)
+    controlStatementsNumber(instFunction, 1, 4, 1)
   })
 
   test("test function with variable declaration", async () => {
@@ -55,7 +55,7 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
     const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
-    controlStatementsNumber(instFunction, 2, 2, 0)
+    controlStatementsNumber(instFunction, 2, 3, 0)
   })
 
   test("test function with nested statements", async () => {
@@ -81,10 +81,10 @@ describe(`Testing Instrumentation Functions`, () => {
     const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
     const numberStatementNestedInWhileStatement = result
       .getFunctionOrThrow("testFunctionInstrumented")
-      .getStatementByKindOrThrow(SyntaxKind.WhileStatement)
+      .getDescendantsOfKind(SyntaxKind.WhileStatement)[0]
       .getDescendantStatements().length
     expect(numberStatementNestedInWhileStatement).toBe(5)
-    controlStatementsNumber(instFunction, 2, 2, 0)
+    controlStatementsNumber(instFunction, 2, 3, 0)
   })
 
   test("test that only used import is generated", async () => {
@@ -107,7 +107,7 @@ describe(`Testing Instrumentation Functions`, () => {
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
     const numberOfImports = result.getFunctionOrThrow("testFunctionInstrumented")
       .getParent().getChildrenOfKind(SyntaxKind.ImportDeclaration).length
-    expect(numberOfImports).toBe(3)
+    expect(numberOfImports).toBe(4)
   })
 
   test("test function with expression", async () => {
@@ -128,7 +128,7 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
     const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
-    controlStatementsNumber(instFunction, 0, 5, 0)
+    controlStatementsNumber(instFunction, 0, 6, 0)
   })
 
   function cleanTestSpace() {

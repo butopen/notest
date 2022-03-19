@@ -34,8 +34,9 @@ export class FunctionInstrumenter {
     // Instrument input parameters
     this.setParametersCollectors(sourceFunction, wrapFunction)
 
-    this.setFunctionReturnOption(sourceFile, wrapFile, wrapFunction, sourceFunction)
+    this.setFunctionOption(sourceFile, wrapFile, wrapFunction, sourceFunction)
 
+    this.wrapInTryCatch(wrapFunction)
     wrapFile.organizeImports()
     wrapFile.formatText()
     return wrapFile
@@ -127,8 +128,8 @@ export class FunctionInstrumenter {
         .write(`import {${sourceFunction.getName()} as ${sourceFunction.getName()}Real} from '${sourceFile.getFilePath().slice(0, -3)}'`))
   }
 
-  private setFunctionReturnOption(sourceFile: SourceFile, wrapFile: SourceFile,
-                                  wrapFunction: FunctionDeclaration, sourceFunction: FunctionDeclaration) {
+  private setFunctionOption(sourceFile: SourceFile, wrapFile: SourceFile,
+                            wrapFunction: FunctionDeclaration, sourceFunction: FunctionDeclaration) {
 
     const functionOption = wrapFile.addFunction({name: "whatToReturn"})
     functionOption.addStatements(writer =>
@@ -141,5 +142,24 @@ export class FunctionInstrumenter {
         .write(`return ${wrapFunction.getName()}`))
 
     wrapFile.addStatements(`export const ${sourceFunction.getName()} = whatToReturn()`)
+  }
+
+  private wrapInTryCatch(wrapFunc: FunctionDeclaration) {
+    wrapFunc.getBody()!.replaceWithText(writer =>
+      writer
+        .write('{').newLine()
+        .write('try {').newLine()
+        .write(wrapFunc.getBodyText()!)
+        .write('} catch (ex) {').newLine()
+        .write(
+          InfoAdderForCollector.addInfo(
+            'ex',
+            'exception',
+            wrapFunc.getName()!,
+            wrapFunc.getSourceFile().getBaseName(),
+            wrapFunc.getStartLineNumber())
+        )
+        .write('}}')
+    )
   }
 }
