@@ -15,9 +15,7 @@ export class ReturnInstrumenter implements InstrumentStatementInterface {
             'output',
             "output",
             wrapFunction.getName()!,
-            returnStatement.getStartLineNumber())
-        )
-        .writeLine('collector.collect(eventsToCollect)')
+            returnStatement.getStartLineNumber()))
         .writeLine(`return output`)
     )
   }

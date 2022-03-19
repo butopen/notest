@@ -1,7 +1,7 @@
 export class InfoAdderForCollector {
 
   static addInfo(variableToCollect: string, type: string, functionName: string, line: number) {
-    return `eventsToCollect.push({
+    return `collector.collect({
       type: '${type}',
       value: ${variableToCollect},
       line: ${line},
