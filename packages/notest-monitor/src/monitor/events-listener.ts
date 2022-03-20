@@ -1,13 +1,14 @@
+import * as chokidar from "chokidar";
 import {FSWatcher} from "chokidar";
-import {FunctionInstrumenter} from "./function-wrapper/wrapper";
-
-const chokidar = require('chokidar');
+import {FunctionInstrumenter} from "../function-wrapper/wrapper";
 
 export class EventsListener {
   private watcher: FSWatcher;
   private instrumenter: FunctionInstrumenter;
+  private readonly path: string;
 
   constructor(path) {
+    this.path = path
     this.watcher = chokidar.watch(path, {
       ignored: /(^|[\/\\])\../, // ignore dotfiles
       persistent: true
@@ -17,9 +18,13 @@ export class EventsListener {
 
   async listen() {
     this.watcher
-      .on('add', path => this.addFunctions(path))
-      .on('change', path => this.controlChanges(path))
+      .on('add', path => console.log("added " + path))
+      .on('change', path => console.log("created " + path))
+    return this.path
+  }
 
+  async stopListen() {
+    await this.watcher.close()
   }
 
   private addFunctions(path: string) {
@@ -27,6 +32,6 @@ export class EventsListener {
   }
 
   private controlChanges(path: string) {
-    // controllo i cambiamenti, svuoto il file instrumentato e riaggiungo tutto?
+    this.instrumenter.instrumentFileFunctions(path)
   }
 }

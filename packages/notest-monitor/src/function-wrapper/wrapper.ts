@@ -55,7 +55,8 @@ export class FunctionInstrumenter {
       wrapFile = this.project.createSourceFile(pathWrapFile)
 
     if (wrapFile.getFunction(functionName)) {
-      throw new Error('Exit because function already exist case not handled (Work in progress)')
+      wrapFile.getFunction(functionName)!.remove()
+      throw new Error('Function deleted and recreated')
     }
 
     const wrapFunction = wrapFile.addFunction({name: functionName, isExported: true})
