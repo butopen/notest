@@ -10,7 +10,7 @@ export class EventsListener {
   constructor(path) {
     this.path = path
     this.watcher = chokidar.watch(path, {
-      ignored: /(^|[\/\\])\../, // ignore dotfiles
+      ignored: '**/instrumentation/**', // ignore dotfiles
       persistent: true
     });
     this.instrumenter = new FunctionInstrumenter()
@@ -18,8 +18,13 @@ export class EventsListener {
 
   async listen() {
     this.watcher
-      .on('add', path => console.log("added " + path))
-      .on('change', path => console.log("created " + path))
+      .on('add', path => {
+        console.log("added file at " + path)
+      })
+      .on('change', path => {
+        console.log("changed file at " + path)
+        this.addFunctions(path)
+      })
     return this.path
   }
 
