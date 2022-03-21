@@ -20,14 +20,15 @@ export class FunctionInstrumenter {
   }
 
   instrument(sourceFilePath: string, functionName: string) {
+    console.log("instrumenting " + functionName)
     const {sourceFile, sourceFunction, wrapFile, wrapFunction} = this.initialize(sourceFilePath, functionName)
 
     this.addImports(sourceFile, wrapFile, sourceFunction)
 
     // Add body
-    if (sourceFunction.getBodyText())
+    if (sourceFunction.getBodyText()) {
       wrapFunction.addStatements(sourceFunction.getBodyText()!)
-    else throw new Error("Function hasn't body")
+    } else throw new Error("Function hasn't body")
 
     this.instrumentBody(wrapFunction)
 
@@ -39,6 +40,7 @@ export class FunctionInstrumenter {
     this.wrapInTryCatch(wrapFunction)
     wrapFile.organizeImports()
     wrapFile.formatText()
+    wrapFile.saveSync()
     return wrapFile
   }
 
@@ -51,12 +53,13 @@ export class FunctionInstrumenter {
 
     let wrapFile = this.project.getSourceFile(pathWrapFile)
 
-    if (!wrapFile)
+    if (!wrapFile) {
       wrapFile = this.project.createSourceFile(pathWrapFile)
+    }
 
     if (wrapFile.getFunction(functionName)) {
       wrapFile.getFunction(functionName)!.remove()
-      throw new Error('Function deleted and recreated')
+      console.log('Function deleted and recreated')
     }
 
     const wrapFunction = wrapFile.addFunction({name: functionName, isExported: true})
@@ -132,7 +135,7 @@ export class FunctionInstrumenter {
   private setFunctionOption(sourceFile: SourceFile, wrapFile: SourceFile,
                             wrapFunction: FunctionDeclaration, sourceFunction: FunctionDeclaration) {
 
-    const functionOption = wrapFile.addFunction({name: "whatToReturn"})
+    const functionOption = wrapFile.addFunction({name: `${sourceFunction.getName()}WhatToReturn`})
     functionOption.addStatements(writer =>
       writer
         .write(`if (instrumentationRules.check(`)
@@ -142,7 +145,7 @@ export class FunctionInstrumenter {
         .write('else').newLine()
         .write(`return ${wrapFunction.getName()}`))
 
-    wrapFile.addStatements(`export const ${sourceFunction.getName()} = whatToReturn()`)
+    wrapFile.addStatements(`export const ${sourceFunction.getName()} = ${sourceFunction.getName()}WhatToReturn()`)
   }
 
   private wrapInTryCatch(wrapFunc: FunctionDeclaration) {
