@@ -8,5 +8,5 @@ import {PostgresDbModule} from "../postgres/postgres-db.module";
   controllers: [InstrumentedEventController],
   providers: [InstrumentedFunctionService],
 })
-export class DbSenderModule {
+export class InstrumentationModule {
 }
