@@ -1,0 +1,14 @@
+{
+  "name": "@butopen/notest-model",
+  "version": "1.0.0",
+  "types": "src/index.ts",
+  "dependencies": {
+  },
+  "scripts": {
+    "build": "node esbuild.cjs && npm run types",
+    "types": "tsc --emitDeclarationOnly --outDir dist"
+  },
+  "devDependencies": {
+    "esbuild": "^0.14.27"
+  }
+}

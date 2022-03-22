@@ -1,12 +1,12 @@
 import {Module} from '@nestjs/common';
-import {DbSenderController} from './db-sender.controller';
-import {DbSenderService} from './db-sender.service';
+import {InstrumentedEventController} from './instrumented-event.controller';
+import {InstrumentedFunctionService} from './instrumented-function.service';
 import {PostgresDbModule} from "../postgres/postgres-db.module";
 
 @Module({
   imports: [PostgresDbModule],
-  controllers: [DbSenderController],
-  providers: [DbSenderService],
+  controllers: [InstrumentedEventController],
+  providers: [InstrumentedFunctionService],
 })
 export class DbSenderModule {
 }

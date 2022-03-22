@@ -1,14 +1,13 @@
-import {CollectEvent} from "./collector.model";
-
+import {InstrumentedFunctionEvent} from "@butopen/notest-model"
 
 class NoTestCollector {
-  private static eventsToSend: CollectEvent[];
+  private static eventsToSend: InstrumentedFunctionEvent[];
 
   constructor() {
     setInterval(() => NoTestCollector.send(NoTestCollector.eventsToSend), 5000)
   }
 
-  private static async send(events: CollectEvent[]) {
+  private static async send(events: InstrumentedFunctionEvent[]) {
     let options1 = {
       method: "POST",
       headers: {
@@ -30,7 +29,7 @@ class NoTestCollector {
    * .collect({type: "input"}, {...})
    * @param event
    */
-  async collect(event: CollectEvent) {
+  async collect(event: InstrumentedFunctionEvent) {
     if (!NoTestCollector.eventsToSend)
       NoTestCollector.eventsToSend = []
     NoTestCollector.eventsToSend.push(event)

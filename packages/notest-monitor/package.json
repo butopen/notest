@@ -20,6 +20,7 @@
   "dependencies": {
     "ts-morph": "^14.0.0",
     "@butopen/notest-collector": "workspace:*",
+    "@butopen/notest-model": "workspace:*",
     "chokidar": "^3.5.3"
   },
   "devDependencies": {
