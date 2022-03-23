@@ -39,9 +39,12 @@ export class FunctionInstrumenter {
     this.setFunctionOption(sourceFile, wrapFile, wrapFunction, sourceFunction)
 
     this.wrapInTryCatch(wrapFunction)
+
+    this.changeDestinationImports(wrapFunction, sourceFunction)
+
     wrapFile.organizeImports()
     wrapFile.formatText()
-    wrapFile.saveSync()
+    this.project.saveSync()
     return wrapFile
   }
 
@@ -137,7 +140,7 @@ export class FunctionInstrumenter {
         .write(`import {collector} from '@butopen/notest-collector'`).newLine()
         .write(`import {InstrumentedFunctionEvent} from '@butopen/notest-model'`).newLine()
         .write(`import {instrumentationRules} from '${invertedRelativePath(wrapFile.getFilePath())}'`).newLine()
-        .writeLine(`import {${sourceFunction.getName()} as ${sourceFunction.getName()}Real} from '${relativePath(sourceFile.getFilePath().slice(0, -3))}'`))
+        .writeLine(`import {${sourceFunction.getName()} as ${sourceFunction.getName()}Real} from '../${sourceFile.getBaseNameWithoutExtension()}'`))
   }
 
   private setFunctionOption(sourceFile: SourceFile, wrapFile: SourceFile,
@@ -152,7 +155,6 @@ export class FunctionInstrumenter {
         .write(`return ${sourceFunction.getName()}Real`).newLine()
         .write('else').newLine()
         .write(`return ${wrapFunction.getName()}`))
-
     wrapFile.addStatements(`export const ${sourceFunction.getName()}Instrumented = ${sourceFunction.getName()}ToReturn()`)
   }
 
@@ -173,6 +175,18 @@ export class FunctionInstrumenter {
         )
         .write('}}')
     )
+  }
+
+  private changeDestinationImports(wrapFunction: FunctionDeclaration, sourceFunction: FunctionDeclaration) {
+    sourceFunction.findReferences().slice(1)
+      .forEach(refSymbol => {
+        let importDec = refSymbol.getReferences()[0]
+          .getSourceFile()
+          .getImportDeclarations()
+          .filter(imp => imp.getModuleSpecifierValue().search(sourceFunction.getSourceFile().getBaseName()))[0]
+        importDec.getImportClause()!.replaceWithText(`{ ${sourceFunction.getName()}Instrumented as ${sourceFunction.getName()} }`)
+        importDec.getModuleSpecifier()!.replaceWithText(`'${relativePath(wrapFunction.getSourceFile().getFilePath()).slice(0, -3)}'`)
+      })
   }
 }
 
