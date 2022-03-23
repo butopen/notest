@@ -3,7 +3,7 @@ import {FunctionInstrumenter} from "../src/function-wrapper/wrapper";
 
 
 describe(`Testing Instrumentation Functions`, () => {
-
+  const pathTestFunction: string = "./test/test-space-instrumentation/test.ts"
   const project = new Project({
     tsConfigFilePath: "tsconfig.json",
   });
@@ -26,13 +26,13 @@ describe(`Testing Instrumentation Functions`, () => {
     
     `
 
-    const fileSource = project.createSourceFile("./test/test.ts", functionCode)
+    const fileSource = project.createSourceFile(pathTestFunction, functionCode)
     fileSource.saveSync()
     const functionInstrumenter = new FunctionInstrumenter()
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
-    const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
-    expect(instFunction.getName()).toEqual("testFunctionInstrumented")
+    const instFunction = result.getFunctionOrThrow("testFunctionInstrumentedImplementation")
+    expect(instFunction.getName()).toEqual("testFunctionInstrumentedImplementation")
     expect(instFunction.getParameters().map(p => p.getName()).join(",")).toEqual("x,y")
     expect(instFunction.getParameters().map(p => p.getType().getText()).join(",")).toEqual("number,number")
     controlStatementsNumber(instFunction, 1, 4, 1)
@@ -49,12 +49,12 @@ describe(`Testing Instrumentation Functions`, () => {
     
     `
 
-    const fileSource = project.createSourceFile("./test/test.ts", functionCode)
+    const fileSource = project.createSourceFile(pathTestFunction, functionCode)
     fileSource.saveSync()
     const functionInstrumenter = new FunctionInstrumenter()
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
-    const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
+    const instFunction = result.getFunctionOrThrow("testFunctionInstrumentedImplementation")
     controlStatementsNumber(instFunction, 2, 3, 0)
   })
 
@@ -73,14 +73,14 @@ describe(`Testing Instrumentation Functions`, () => {
     
     `
 
-    const fileSource = project.createSourceFile("./test/test.ts", functionCode)
+    const fileSource = project.createSourceFile(pathTestFunction, functionCode)
     fileSource.saveSync()
     const functionInstrumenter = new FunctionInstrumenter()
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
-    const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
+    const instFunction = result.getFunctionOrThrow("testFunctionInstrumentedImplementation")
     const numberStatementNestedInWhileStatement = result
-      .getFunctionOrThrow("testFunctionInstrumented")
+      .getFunctionOrThrow("testFunctionInstrumentedImplementation")
       .getDescendantsOfKind(SyntaxKind.WhileStatement)[0]
       .getDescendantStatements().length
     expect(numberStatementNestedInWhileStatement).toBe(5)
@@ -100,12 +100,12 @@ describe(`Testing Instrumentation Functions`, () => {
 
     `
 
-    const fileSource = project.createSourceFile("./test/test.ts", functionCode)
+    const fileSource = project.createSourceFile(pathTestFunction, functionCode)
     fileSource.saveSync()
     const functionInstrumenter = new FunctionInstrumenter()
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
-    const numberOfImports = result.getFunctionOrThrow("testFunctionInstrumented")
+    const numberOfImports = result.getFunctionOrThrow("testFunctionInstrumentedImplementation")
       .getParent().getChildrenOfKind(SyntaxKind.ImportDeclaration).length
     expect(numberOfImports).toBe(4)
   })
@@ -122,23 +122,23 @@ describe(`Testing Instrumentation Functions`, () => {
     
     `
 
-    const fileSource = project.createSourceFile("./test/test.ts", functionCode)
+    const fileSource = project.createSourceFile(pathTestFunction, functionCode)
     fileSource.saveSync()
     const functionInstrumenter = new FunctionInstrumenter()
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
-    const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
+    const instFunction = result.getFunctionOrThrow("testFunctionInstrumentedImplementation")
     controlStatementsNumber(instFunction, 0, 6, 0)
   })
 
   function cleanTestSpace() {
-    const file = project.getSourceFile("./test/test.ts")
+    const file = project.getSourceFile(pathTestFunction)
     if (file) {
       file.deleteImmediatelySync()
       file.forget()
     }
 
-    const wrap = project.getSourceFile("./test/instrumentation/test.ts")
+    const wrap = project.getSourceFile("./test/test-space-instrumentation/instrumentation/test.ts")
     if (wrap) {
       wrap.deleteImmediatelySync()
       wrap.forget()

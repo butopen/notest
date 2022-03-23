@@ -16,7 +16,7 @@ export class ExpressionInstrumenter implements InstrumentStatementInterface {
                 variableToCollect,
                 "variable",
                 wrapFunction.getName()!,
-                wrapFunction.getSourceFile().getBaseName(),
+                wrapFunction.getSourceFile().getFilePath(),
                 expressionStatement.getStartLineNumber())
             )
         }

@@ -4,6 +4,7 @@ import {ExpressionInstrumenter} from "./statements_instrumenters/expression_inst
 import {ReturnInstrumenter} from "./statements_instrumenters/return_instrumenter";
 import {InstrumentStatementInterface} from "./statements_instrumenters/instrument_statement.interface";
 import {InfoAdderForCollector} from "./info_adder_for_collector";
+import * as path from "path";
 
 export class FunctionInstrumenter {
   private project: Project;
@@ -47,7 +48,7 @@ export class FunctionInstrumenter {
   private initialize(sourceFilePath: string, functionName: string) {
     const sourceFile = this.project.getSourceFileOrThrow(sourceFilePath)
     const sourceFunction = sourceFile.getFunctionOrThrow(functionName)
-    functionName = functionName + 'Instrumented'
+    let wrapFunctionName = functionName + 'InstrumentedImplementation'
 
     const pathWrapFile = `${sourceFile.getDirectoryPath()}/instrumentation/${sourceFile.getBaseName()}`
 
@@ -128,24 +129,24 @@ export class FunctionInstrumenter {
       writer
         .write(`import {collector} from '@butopen/notest-collector'`).newLine()
         .write(`import {InstrumentedFunctionEvent} from '@butopen/notest-model'`).newLine()
-        .write(`import {instrumentationRules} from '../../src/function-wrapper/instrumentation-rules/instrumentation-rules'`).newLine()
-        .write(`import {${sourceFunction.getName()} as ${sourceFunction.getName()}Real} from '${sourceFile.getFilePath().slice(0, -3)}'`))
+        .write(`import {instrumentationRules} from '${invertedRelativePath(wrapFile.getFilePath())}'`).newLine()
+        .writeLine(`import {${sourceFunction.getName()} as ${sourceFunction.getName()}Real} from '${relativePath(sourceFile.getFilePath().slice(0, -3))}'`))
   }
 
   private setFunctionOption(sourceFile: SourceFile, wrapFile: SourceFile,
                             wrapFunction: FunctionDeclaration, sourceFunction: FunctionDeclaration) {
 
-    const functionOption = wrapFile.addFunction({name: `${sourceFunction.getName()}WhatToReturn`})
+    const functionOption = wrapFile.addFunction({name: `${sourceFunction.getName()}ToReturn`})
     functionOption.addStatements(writer =>
       writer
         .write(`if (instrumentationRules.check(`)
-        .write(`{path: '${sourceFile.getFilePath().slice(0, -3)}', name: '${sourceFunction.getName()}'}`)
+        .write(`{path: '${relativePath(sourceFile.getFilePath().slice(0, -3))}', name: '${sourceFunction.getName()}'}`)
         .write(`))`)
         .write(`return ${sourceFunction.getName()}Real`).newLine()
         .write('else').newLine()
         .write(`return ${wrapFunction.getName()}`))
 
-    wrapFile.addStatements(`export const ${sourceFunction.getName()} = ${sourceFunction.getName()}WhatToReturn()`)
+    wrapFile.addStatements(`export const ${sourceFunction.getName()}Instrumented = ${sourceFunction.getName()}ToReturn()`)
   }
 
   private wrapInTryCatch(wrapFunc: FunctionDeclaration) {
@@ -166,4 +167,14 @@ export class FunctionInstrumenter {
         .write('}}')
     )
   }
+}
+
+function relativePath(pathAbs: string) {
+  let relPath = path.relative('notest-monitor', pathAbs).toString()
+  return relPath.replace(/\\/g, '/')
+}
+
+function invertedRelativePath(pathAbs: string) {
+  let relPath = path.relative(pathAbs, 'notest-monitor/src/function-wrapper/instrumentation-rules/instrumentation-rules').toString()
+  return relPath.replace(/\\/g, '/')
 }

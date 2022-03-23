@@ -15,7 +15,7 @@ export class ReturnInstrumenter implements InstrumentStatementInterface {
             'output',
             "output",
             wrapFunction.getName()!,
-            wrapFunction.getSourceFile().getBaseName(),
+            wrapFunction.getSourceFile().getFilePath(),
             returnStatement.getStartLineNumber()))
         .writeLine(`return output`)
     )
