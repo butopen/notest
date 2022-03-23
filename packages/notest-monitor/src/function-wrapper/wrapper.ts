@@ -1,4 +1,4 @@
-import {FunctionDeclaration, Node, Project, SourceFile, SyntaxKind} from "ts-morph";
+import {FunctionDeclaration, Node, Project, SourceFile, SyntaxKind, VariableStatement} from "ts-morph";
 import {VariableInstrumenter} from "./statements_instrumenters/variable_instrumenter";
 import {ExpressionInstrumenter} from "./statements_instrumenters/expression_instrumenter";
 import {ReturnInstrumenter} from "./statements_instrumenters/return_instrumenter";
@@ -53,17 +53,24 @@ export class FunctionInstrumenter {
     const pathWrapFile = `${sourceFile.getDirectoryPath()}/instrumentation/${sourceFile.getBaseName()}`
 
     let wrapFile = this.project.getSourceFile(pathWrapFile)
-
-    if (!wrapFile) {
+    let wrapFunction: FunctionDeclaration | undefined
+    if (wrapFile) {
+      wrapFunction = wrapFile.getFunction(wrapFunctionName)
+      if (wrapFunction) {
+        wrapFunction.remove()
+        wrapFile.getFunctionOrThrow(`${functionName}ToReturn`).remove()
+        let variableStat: VariableStatement[] = wrapFile.getStatements()
+          .filter(stat => stat.getKind() == SyntaxKind.VariableStatement)
+          .map(stat => stat.asKindOrThrow(SyntaxKind.VariableStatement))
+          .filter(stat => stat.getDeclarations()[0].getName() == `${functionName}Instrumented`)
+        variableStat.forEach(stat => stat.remove())
+        console.log('Function deleted and recreated')
+      }
+    } else {
       wrapFile = this.project.createSourceFile(pathWrapFile)
     }
+    wrapFunction = wrapFile.addFunction({name: wrapFunctionName, isExported: true})
 
-    if (wrapFile.getFunction(functionName)) {
-      wrapFile.getFunction(functionName)!.remove()
-      console.log('Function deleted and recreated')
-    }
-
-    const wrapFunction = wrapFile.addFunction({name: functionName, isExported: true})
     return {sourceFile, sourceFunction, wrapFile, wrapFunction}
   }
 
@@ -155,13 +162,13 @@ export class FunctionInstrumenter {
         .write('{').newLine()
         .write('try {').newLine()
         .write(wrapFunc.getBodyText()!)
-        .write('} catch (ex) {').newLine()
+        .write('} catch (error: any) {').newLine()
         .write(
           InfoAdderForCollector.addInfo(
-            'ex',
+            'error.message',
             'exception',
             wrapFunc.getName()!,
-            wrapFunc.getSourceFile().getBaseName(),
+            wrapFunc.getSourceFile().getFilePath(),
             wrapFunc.getStartLineNumber())
         )
         .write('}}')
