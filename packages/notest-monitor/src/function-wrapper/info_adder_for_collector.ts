@@ -1,4 +1,4 @@
-import {relativePath} from "./wrapper";
+import {relativePathForCollectorMap} from "./wrapper";
 
 export class InfoAdderForCollector {
 
@@ -9,7 +9,7 @@ export class InfoAdderForCollector {
       value: ${variableToCollect},
       line: ${line},
       function: '${functionName}',
-      file: '${relativePath(filePath)}',
+      file: '${relativePathForCollectorMap(filePath)}',
       timestamp: Date.now(),
       other: ${other}
     })`
@@ -19,7 +19,7 @@ export class InfoAdderForCollector {
       value: ${variableToCollect},
       line: ${line},
       function: '${functionName}',
-      file: '${relativePath(filePath)}',
+      file: '${relativePathForCollectorMap(filePath)}',
       timestamp: Date.now()
     })`
   }

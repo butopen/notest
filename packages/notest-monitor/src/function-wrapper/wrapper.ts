@@ -149,7 +149,7 @@ export class FunctionInstrumenter {
     functionOption.addStatements(writer =>
       writer
         .write(`if (instrumentationRules.check(`)
-        .write(`{path: '${relativePath(sourceFile.getFilePath().slice(0, -3))}', name: '${sourceFunction.getName()}'}`)
+        .write(`{path: '${relativePathForCollectorMap(sourceFile.getFilePath().slice(0, -3))}', name: '${sourceFunction.getName()}'}`)
         .write(`))`)
         .write(`return ${sourceFunction.getName()}Real`).newLine()
         .write('else').newLine()
@@ -189,7 +189,6 @@ export class FunctionInstrumenter {
   }
 }
 
-export function relativePath(pathAbs: string) {
-  let relPath = path.relative('notest-monitor', pathAbs).toString()
-  return relPath.replace(/\\/g, '/')
+export function relativePathForCollectorMap(pathAbs: string) {
+  return path.relative('notest-monitor', pathAbs).toString().replace(/\\/g, '/')
 }
