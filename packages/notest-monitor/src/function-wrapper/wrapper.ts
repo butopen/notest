@@ -139,7 +139,7 @@ export class FunctionInstrumenter {
       writer
         .write(`import {collector} from '@butopen/notest-collector'`).newLine()
         .write(`import {InstrumentedFunctionEvent} from '@butopen/notest-model'`).newLine()
-        .write(`import {instrumentationRules} from '${invertedRelativePath(wrapFile.getFilePath())}'`).newLine()
+        .write(`import {instrumentationRules} from '@butopen/notest-collector'`).newLine()
         .writeLine(`import {${sourceFunction.getName()} as ${sourceFunction.getName()}Real} from '../${sourceFile.getBaseNameWithoutExtension()}'`))
   }
 
@@ -192,10 +192,5 @@ export class FunctionInstrumenter {
 
 function relativePath(pathAbs: string) {
   let relPath = path.relative('notest-monitor', pathAbs).toString()
-  return relPath.replace(/\\/g, '/')
-}
-
-function invertedRelativePath(pathAbs: string) {
-  let relPath = path.relative(pathAbs, 'notest-monitor/src/function-wrapper/instrumentation-rules/instrumentation-rules').toString()
   return relPath.replace(/\\/g, '/')
 }
