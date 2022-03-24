@@ -107,7 +107,7 @@ describe(`Testing Instrumentation Functions`, () => {
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
     const numberOfImports = result.getFunctionOrThrow("testFunctionInstrumentedImplementation")
       .getParent().getChildrenOfKind(SyntaxKind.ImportDeclaration).length
-    expect(numberOfImports).toBe(4)
+    expect(numberOfImports).toBe(3)
   })
 
   test("test function with expression", async () => {

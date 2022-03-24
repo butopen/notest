@@ -137,9 +137,8 @@ export class FunctionInstrumenter {
     })
     wrapFile.insertStatements(0, writer =>
       writer
-        .write(`import {collector} from '@butopen/notest-collector'`).newLine()
         .write(`import {InstrumentedFunctionEvent} from '@butopen/notest-model'`).newLine()
-        .write(`import {instrumentationRules} from '@butopen/notest-collector'`).newLine()
+        .write(`import {collector, instrumentationRules} from '@butopen/notest-collector'`).newLine()
         .writeLine(`import {${sourceFunction.getName()} as ${sourceFunction.getName()}Real} from '../${sourceFile.getBaseNameWithoutExtension()}'`))
   }
 
