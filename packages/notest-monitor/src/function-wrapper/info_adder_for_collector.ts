@@ -1,4 +1,4 @@
-import * as path from "path";
+import {relativePath} from "./wrapper";
 
 export class InfoAdderForCollector {
 
@@ -23,9 +23,4 @@ export class InfoAdderForCollector {
       timestamp: Date.now()
     })`
   }
-}
-
-function relativePath(pathAbs: string) {
-  let relPath = path.relative('notest-monitor', pathAbs).toString()
-  return relPath.replace(/\\/g, '/')
 }

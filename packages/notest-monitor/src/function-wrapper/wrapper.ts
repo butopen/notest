@@ -190,7 +190,7 @@ export class FunctionInstrumenter {
   }
 }
 
-function relativePath(pathAbs: string) {
+export function relativePath(pathAbs: string) {
   let relPath = path.relative('notest-monitor', pathAbs).toString()
   return relPath.replace(/\\/g, '/')
 }
