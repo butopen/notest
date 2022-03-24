@@ -40,7 +40,7 @@ export class FunctionInstrumenter {
 
     this.wrapInTryCatch(wrapFunction)
 
-    this.changeDestinationImports(wrapFunction, sourceFunction)
+    this.changeDestinationImports(sourceFunction)
 
     wrapFile.organizeImports()
     wrapFile.formatText()
@@ -176,16 +176,34 @@ export class FunctionInstrumenter {
     )
   }
 
-  private changeDestinationImports(wrapFunction: FunctionDeclaration, sourceFunction: FunctionDeclaration) {
-    sourceFunction.findReferences().slice(1)
-      .forEach(refSymbol => {
-        let importDec = refSymbol.getReferences()[0]
-          .getSourceFile()
-          .getImportDeclarations()
-          .filter(imp => imp.getModuleSpecifierValue().search(sourceFunction.getSourceFile().getBaseName()))[0]
-        importDec.getImportClause()!.replaceWithText(`{ ${sourceFunction.getName()}Instrumented as ${sourceFunction.getName()} }`)
-        importDec.getModuleSpecifier()!.replaceWithText(`'${relativePath(wrapFunction.getSourceFile().getFilePath()).slice(0, -3)}'`)
-      })
+  private changeDestinationImports(sourceFunction: FunctionDeclaration) {
+    const sourceFunctionName = sourceFunction.getName()
+    const sourceFileName = sourceFunction.getSourceFile().getBaseNameWithoutExtension()
+    const externalReferences = sourceFunction.findReferences()
+      .filter(ref => !(ref.getReferences()[0].getSourceFile().getBaseNameWithoutExtension() == sourceFileName))
+    const externalReferencesSourceFile = externalReferences.map(ref => ref.getReferences()[0].getSourceFile())
+    externalReferencesSourceFile.forEach(file => {
+      let arrayImportRef = file.getImportDeclarations()
+        .filter(imp =>
+          imp.getModuleSpecifierValue()
+            .replace(/\\/g, '/')
+            .split('/').slice(-1)[0] == sourceFileName)
+      if (arrayImportRef.length) {
+        arrayImportRef.forEach(imp => {
+          imp.getImportClause()!.replaceWithText(`{ ${sourceFunctionName}Instrumented as ${sourceFunctionName} }`)
+          let arrayElementPath = imp.getModuleSpecifier()!
+            .getText()
+            .replace(/\\/g, '/')
+            .split('/')
+            .slice(0, -1)
+          arrayElementPath.push(`instrumentation/${sourceFileName}`)
+          let newPath = arrayElementPath.join('/')
+          imp.getModuleSpecifier()!.replaceWithText(`'${newPath.slice(1)}'`)
+        })
+      } else {
+        file.insertStatements(0, `import { ${sourceFunctionName}Instrumented as ${sourceFunctionName} } from './instrumentation/${sourceFunctionName}'`)
+      }
+    })
   }
 }
 
