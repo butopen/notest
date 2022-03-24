@@ -22,3 +22,4 @@ Thumbs.db
 UserInterfaceState.xcuserstate
 .env
 
+/packages/notest-monitor/test/test-space-instrumentation/instrumentation/
