@@ -1,8 +1,8 @@
 import {FunctionDeclaration, Node, Project, SourceFile, SyntaxKind, VariableStatement} from "ts-morph";
-import {VariableInstrumenter} from "./statements_instrumenters/variable_instrumenter";
-import {ExpressionInstrumenter} from "./statements_instrumenters/expression_instrumenter";
-import {ReturnInstrumenter} from "./statements_instrumenters/return_instrumenter";
-import {InstrumentStatementInterface} from "./statements_instrumenters/instrument_statement.interface";
+import {VariableInstrumenter} from "./statements-instrumenters/variable-instrumenter";
+import {ExpressionInstrumenter} from "./statements-instrumenters/expression-instrumenter";
+import {ReturnInstrumenter} from "./statements-instrumenters/return-instrumenter";
+import {InstrumentStatementInterface} from "./statements-instrumenters/instrument-statement.interface";
 import {InfoAdderForCollector} from "./info-adder-for-collector";
 import * as path from "path";
 

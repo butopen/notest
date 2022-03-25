@@ -1,5 +1,5 @@
 import {Expression, ExpressionStatement, FunctionDeclaration, SyntaxKind} from "ts-morph"
-import {InstrumentStatementInterface} from "./instrument_statement.interface";
+import {InstrumentStatementInterface} from "./instrument-statement.interface";
 import {InfoAdderForCollector} from "../info-adder-for-collector";
 
 export class ExpressionInstrumenter implements InstrumentStatementInterface {
