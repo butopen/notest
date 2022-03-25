@@ -1,6 +1,6 @@
 import {FunctionDeclaration, ReturnStatement, Statement, SyntaxKind} from "ts-morph"
 import {InstrumentStatementInterface} from "./instrument-statement.interface";
-import {InfoAdderForCollector} from "../info-adder-for-collector";
+import {collectorCreator} from "../collector-creator";
 
 export class ReturnInstrumenter implements InstrumentStatementInterface {
 
@@ -11,7 +11,7 @@ export class ReturnInstrumenter implements InstrumentStatementInterface {
       writer
         .writeLine(`const output = ${output}`).newLine()
         .write(
-          InfoAdderForCollector.addInfo(
+          collectorCreator.addInfo(
             'output',
             "output",
             wrapFunction.getName()!,

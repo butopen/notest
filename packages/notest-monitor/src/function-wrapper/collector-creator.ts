@@ -1,8 +1,8 @@
 import {relativePathForCollectorMap} from "./wrapper";
 
-export class InfoAdderForCollector {
+class CollectorCreator {
 
-  static addInfo(variableToCollect: string, type: string, functionName: string, filePath: string, line: number, other?: any) {
+  addInfo(variableToCollect: string, type: string, functionName: string, filePath: string, line: number, other?: any) {
     if (other) {
       return `collector.collect({
       type: '${type}',
@@ -24,3 +24,5 @@ export class InfoAdderForCollector {
     })`
   }
 }
+
+export const collectorCreator = new CollectorCreator()

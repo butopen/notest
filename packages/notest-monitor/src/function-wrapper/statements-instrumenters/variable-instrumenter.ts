@@ -1,6 +1,6 @@
 import {FunctionDeclaration, Statement, SyntaxKind, VariableStatement} from "ts-morph"
 import {InstrumentStatementInterface} from "./instrument-statement.interface";
-import {InfoAdderForCollector} from "../info-adder-for-collector";
+import {collectorCreator} from "../collector-creator";
 
 export class VariableInstrumenter implements InstrumentStatementInterface {
 
@@ -11,7 +11,7 @@ export class VariableInstrumenter implements InstrumentStatementInterface {
           writer
             .writeLine(statement.getFullText()).newLine()
             .write(
-              InfoAdderForCollector.addInfo(
+              collectorCreator.addInfo(
                 declaration.getName(),
                 "variable",
                 wrapFunction.getName()!,

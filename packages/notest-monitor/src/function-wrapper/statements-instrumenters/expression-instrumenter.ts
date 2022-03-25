@@ -1,6 +1,6 @@
 import {Expression, ExpressionStatement, FunctionDeclaration, SyntaxKind} from "ts-morph"
 import {InstrumentStatementInterface} from "./instrument-statement.interface";
-import {InfoAdderForCollector} from "../info-adder-for-collector";
+import {collectorCreator} from "../collector-creator";
 
 export class ExpressionInstrumenter implements InstrumentStatementInterface {
 
@@ -12,7 +12,7 @@ export class ExpressionInstrumenter implements InstrumentStatementInterface {
           const variableToCollect = expressionStatement.getFirstDescendantByKindOrThrow(SyntaxKind.Identifier).getText()
           writer.newLine()
             .write(
-              InfoAdderForCollector.addInfo(
+              collectorCreator.addInfo(
                 variableToCollect,
                 "variable",
                 wrapFunction.getName()!,
