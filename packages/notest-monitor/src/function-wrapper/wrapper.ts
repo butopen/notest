@@ -3,7 +3,7 @@ import {VariableInstrumenter} from "./statements_instrumenters/variable_instrume
 import {ExpressionInstrumenter} from "./statements_instrumenters/expression_instrumenter";
 import {ReturnInstrumenter} from "./statements_instrumenters/return_instrumenter";
 import {InstrumentStatementInterface} from "./statements_instrumenters/instrument_statement.interface";
-import {InfoAdderForCollector} from "./info_adder_for_collector";
+import {InfoAdderForCollector} from "./info-adder-for-collector";
 import * as path from "path";
 
 export class FunctionInstrumenter {
@@ -208,5 +208,6 @@ export class FunctionInstrumenter {
 }
 
 export function relativePathForCollectorMap(pathAbs: string) {
-  return path.relative('notest-monitor', pathAbs).toString().replace(/\\/g, '/')
+  let relPath = path.relative(path.resolve("."), pathAbs).toString()
+  return relPath.replace(/\\/g, '/')
 }
