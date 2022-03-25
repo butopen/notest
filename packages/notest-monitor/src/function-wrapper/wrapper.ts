@@ -25,7 +25,10 @@ export class FunctionInstrumenter {
     console.log("instrumenting " + functionName)
     const {sourceFile, sourceFunction, wrapFile, wrapFunction} = this.initialize(sourceFilePath, functionName)
 
-    this.addImports(sourceFile, wrapFile, sourceFunction)
+    const importInstrumenter = new ImportInstrumenter()
+
+    importInstrumenter.addImports(sourceFile, wrapFile, sourceFunction)
+    importInstrumenter.destinationImportsChanger(sourceFunction, wrapFunction)
 
     // Add body
     if (sourceFunction.getBodyText()) {
@@ -40,8 +43,6 @@ export class FunctionInstrumenter {
     this.setFunctionOption(sourceFile, wrapFile, wrapFunction, sourceFunction)
 
     this.wrapInTryCatch(wrapFunction)
-
-    this.changeDestinationImports(sourceFunction)
 
     wrapFile.organizeImports()
     wrapFile.formatText()
@@ -132,17 +133,6 @@ export class FunctionInstrumenter {
     }
   }
 
-  private addImports(sourceFile: SourceFile, wrapFile: SourceFile, sourceFunction: FunctionDeclaration) {
-    sourceFile.getImportDeclarations().forEach(imp => {
-      wrapFile.insertStatements(0, imp.getFullText())
-    })
-    wrapFile.insertStatements(0, writer =>
-      writer
-        .write(`import {InstrumentedFunctionEvent} from '@butopen/notest-model'`).newLine()
-        .write(`import {collector, instrumentationRules} from '@butopen/notest-collector'`).newLine()
-        .writeLine(`import {${sourceFunction.getName()} as ${sourceFunction.getName()}Real} from '../${sourceFile.getBaseNameWithoutExtension()}'`))
-  }
-
   private setFunctionOption(sourceFile: SourceFile, wrapFile: SourceFile,
                             wrapFunction: FunctionDeclaration, sourceFunction: FunctionDeclaration) {
 
@@ -175,36 +165,6 @@ export class FunctionInstrumenter {
         )
         .write('}}')
     )
-  }
-
-  private changeDestinationImports(sourceFunction: FunctionDeclaration) {
-    const sourceFunctionName = sourceFunction.getName()
-    const sourceFileName = sourceFunction.getSourceFile().getBaseNameWithoutExtension()
-    const externalReferences = sourceFunction.findReferences()
-      .filter(ref => !(ref.getReferences()[0].getSourceFile().getBaseNameWithoutExtension() == sourceFileName))
-    const externalReferencesSourceFile = externalReferences.map(ref => ref.getReferences()[0].getSourceFile())
-    externalReferencesSourceFile.forEach(file => {
-      let arrayImportRef = file.getImportDeclarations()
-        .filter(imp =>
-          imp.getModuleSpecifierValue()
-            .replace(/\\/g, '/')
-            .split('/').slice(-1)[0] == sourceFileName)
-      if (arrayImportRef.length) {
-        arrayImportRef.forEach(imp => {
-          imp.getImportClause()!.replaceWithText(`{ ${sourceFunctionName}Instrumented as ${sourceFunctionName} }`)
-          let arrayElementPath = imp.getModuleSpecifier()!
-            .getText()
-            .replace(/\\/g, '/')
-            .split('/')
-            .slice(0, -1)
-          arrayElementPath.push(`instrumentation/${sourceFileName}`)
-          let newPath = arrayElementPath.join('/')
-          imp.getModuleSpecifier()!.replaceWithText(`'${newPath.slice(1)}'`)
-        })
-      } else {
-        file.insertStatements(0, `import { ${sourceFunctionName}Instrumented as ${sourceFunctionName} } from './instrumentation/${sourceFunctionName}'`)
-      }
-    })
   }
 }
 
