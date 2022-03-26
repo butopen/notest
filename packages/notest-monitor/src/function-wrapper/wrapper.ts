@@ -3,7 +3,7 @@ import {VariableInstrumenter} from "./statements-instrumenters/variable-instrume
 import {ExpressionInstrumenter} from "./statements-instrumenters/expression-instrumenter";
 import {ReturnInstrumenter} from "./statements-instrumenters/return-instrumenter";
 import {InstrumentStatementInterface} from "./statements-instrumenters/instrument-statement.interface";
-import {collectorCreator} from "./collector-creator";
+import {collectorCreator} from "../../../notest-collector/src/collector-creator";
 import * as path from "path";
 import {ImportInstrumenter} from "./import-instrumenter";
 

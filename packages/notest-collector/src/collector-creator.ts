@@ -1,4 +1,4 @@
-import {relativePathForCollectorMap} from "./wrapper";
+import {relativePathForCollectorMap} from "../../notest-monitor/src/function-wrapper/wrapper";
 
 class CollectorCreator {
 

@@ -1,6 +1,6 @@
 import {FunctionDeclaration, Statement, SyntaxKind, VariableStatement} from "ts-morph"
 import {InstrumentStatementInterface} from "./instrument-statement.interface";
-import {collectorCreator} from "../collector-creator";
+import {collectorCreator} from "../../../../notest-collector/src/collector-creator";
 
 export class VariableInstrumenter implements InstrumentStatementInterface {
 
