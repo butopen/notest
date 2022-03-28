@@ -18,7 +18,7 @@ class NoTestCollector {
     };
 
     let response = await fetch(
-      "http://localhost:3000/api/addFunctionInfo",
+      "http://localhost:3000/api/instrumented-function-event",
       options1
     );
     if (response.ok)
