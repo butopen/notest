@@ -9,9 +9,7 @@ export class InstrumentedEventController {
 
   @Post('instrumented-function-event')
   async instrumentedFunctionEvent(@Body() events: InstrumentedFunctionEvent[]) {
-    for (const event of events) {
-      this.senderService.save(event)
-    }
+    await this.senderService.bulkSave(events)
     return {ok: true};
   }
 }

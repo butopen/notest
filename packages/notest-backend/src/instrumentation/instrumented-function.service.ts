@@ -17,12 +17,13 @@ export class InstrumentedFunctionService {
     await this.db.query(`
             create table if not exists ${this.tableName} (
                 infoid BIGSERIAL PRIMARY KEY,
-                filepath text,
-                functionname text,
-                line integer,
                 nttype text CHECK (nttype IN ('input' , 'output' , 'variable' , 'expression' , 'exception')),
                 value text,
+                line integer,
+                functionname text,
+                filepath text,
                 fired TIMESTAMPTZ,
+                other JSONB,
                 created TIMESTAMPTZ
             );
         `)
@@ -32,20 +33,15 @@ export class InstrumentedFunctionService {
     this.db.query(``)
   }
 
-  /*
 
-
-async bulkSave(data: { scope: Required<{ [key: string]: any }>, data: BLSessionEvent }[]): Promise<{ hitid: number }[]> {
-        let index = 1
-        let params: any[] = []
-        let values = data.map(d => {
-            params.push(d.data.url, d.data.name, d.data.type, d.data.sid, d.data.tab, d.data.timestamp, d.scope, d.data, new Date())
-            return `(DEFAULT, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++})`
-        }).join(",")
-        let result = (await this.db.query<{ hitid: number }>(`insert into blhit values ${values} RETURNING hitid`, params, {skipLogging: true}))
-        return result
-    }
-
- */
-
+  async bulkSave(data: InstrumentedFunctionEvent[]): Promise<{ infoid: number }[]> {
+    let index = 1
+    let params: any[] = []
+    let values = data.map(d => {
+      params.push(d.type, d.value, d.line, d.function, d.file, d.timestamp, d.other, new Date())
+      return `(DEFAULT, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++})`
+    }).join(",")
+    let result = (await this.db.query<{ infoid: number }>(`insert into blhit values ${values} RETURNING hitid`, params, {skipLogging: true}))
+    return result
+  }
 }
