@@ -151,3 +151,56 @@ describe(`Testing Instrumentation Functions`, () => {
     expect(functionInst.getDescendantsOfKind(SyntaxKind.ReturnStatement).length).toBe(return_)
   }
 })
+
+describe(`Testing Import Creation External Files`, () => {
+  const pathTestFunction: string = "./test/test-space-instrumentation/test.ts"
+  const pathDestFunction: string = "./test/test-space-instrumentation/destFile.ts"
+  const project = new Project({
+    tsConfigFilePath: "tsconfig.json",
+  });
+
+  test("test single import", () => {
+    if (project.getSourceFile(pathTestFunction))
+      project.getSourceFile(pathTestFunction)!.delete()
+    if (project.getSourceFile(pathDestFunction))
+      project.getSourceFile(pathDestFunction)!.delete()
+    if (project.getSourceFile("./test/test-space-instrumentation/test.ts"))
+      project.getSourceFile("./test/test-space-instrumentation/test.ts")!.delete()
+
+    const functionCode = `
+  
+    export function testFunction(i: number){
+      const a = 1
+      const b = i
+      return a + b
+    }
+    
+    `
+
+    const externalFileCode = `
+    
+    
+    import {testFunction, fun2, fun3, fun4, fun5 as f} from './test'
+    
+    function destFunction(){
+      const i = 1
+      const a = testFunction(i)
+    }
+    `
+    const fileSource = project.createSourceFile(pathTestFunction, functionCode)
+    const fileRef = project.createSourceFile(pathDestFunction, externalFileCode)
+    project.saveSync()
+
+    const instrumenter = new FunctionInstrumenter()
+    const funcInst = instrumenter.instrumentFileFunctions(pathTestFunction)[0]
+
+    project.removeSourceFile(fileRef)
+    let result = project.addSourceFileAtPath(pathDestFunction)
+
+    expect(result.getSourceFile().getImportDeclarations().length).toBe(5)
+
+    funcInst.deleteImmediatelySync()
+    fileSource.deleteImmediatelySync()
+    result.deleteImmediatelySync()
+  })
+})
