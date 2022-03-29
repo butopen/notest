@@ -1,4 +1,4 @@
-import {FunctionDeclaration, Node, Project, SourceFile, SyntaxKind, VariableStatement} from "ts-morph";
+import {FunctionDeclaration, Node, Project, SourceFile, SyntaxKind} from "ts-morph";
 import {VariableInstrumenter} from "./statements-instrumenters/variable-instrumenter";
 import {ExpressionInstrumenter} from "./statements-instrumenters/expression-instrumenter";
 import {ReturnInstrumenter} from "./statements-instrumenters/return-instrumenter";
@@ -32,8 +32,7 @@ export class FunctionInstrumenter {
 
     const importInstrumenter = new ImportInstrumenter()
 
-    importInstrumenter.addImports(sourceFile, wrapFile, sourceFunction)
-    importInstrumenter.destinationImportsChanger(sourceFunction, wrapFunction)
+    importInstrumenter.addImportsWrapFile(sourceFile, wrapFile)
 
     // Add body
     if (sourceFunction.getBodyText()) {
@@ -45,9 +44,11 @@ export class FunctionInstrumenter {
     // Instrument input parameters
     this.setParametersCollectors(sourceFunction, wrapFunction)
 
-    this.setFunctionOption(sourceFile, wrapFile, wrapFunction, sourceFunction)
-
     this.wrapInTryCatch(wrapFunction)
+
+    this.addIfOnSourceFile(sourceFunction)
+
+    importInstrumenter.addImportsSourceFile(sourceFile, wrapFunction)
 
     wrapFile.organizeImports()
     wrapFile.formatText()
@@ -58,7 +59,10 @@ export class FunctionInstrumenter {
   private initialize(sourceFilePath: string, functionName: string) {
     const sourceFile = this.project.getSourceFileOrThrow(sourceFilePath)
     const sourceFunction = sourceFile.getFunctionOrThrow(functionName)
-    let wrapFunctionName = functionName + 'InstrumentedImplementation'
+
+    this.cleanOnInit(sourceFunction, sourceFile)
+
+    let wrapFunctionName = functionName + 'Instrumented'
 
     const pathWrapFile = `${sourceFile.getDirectoryPath()}/instrumentation/${sourceFile.getBaseName()}`
 
@@ -68,12 +72,6 @@ export class FunctionInstrumenter {
       wrapFunction = wrapFile.getFunction(wrapFunctionName)
       if (wrapFunction) {
         wrapFunction.remove()
-        wrapFile.getFunctionOrThrow(`${functionName}ToReturn`).remove()
-        let variableStat: VariableStatement[] = wrapFile.getStatements()
-          .filter(stat => stat.getKind() == SyntaxKind.VariableStatement)
-          .map(stat => stat.asKindOrThrow(SyntaxKind.VariableStatement))
-          .filter(stat => stat.getDeclarations()[0].getName() == `${functionName}Instrumented`)
-        variableStat.forEach(stat => stat.remove())
         console.log('Function deleted and recreated')
       }
     } else {
@@ -138,21 +136,6 @@ export class FunctionInstrumenter {
     }
   }
 
-  private setFunctionOption(sourceFile: SourceFile, wrapFile: SourceFile,
-                            wrapFunction: FunctionDeclaration, sourceFunction: FunctionDeclaration) {
-
-    const functionOption = wrapFile.addFunction({name: `${sourceFunction.getName()}ToReturn`})
-    functionOption.addStatements(writer =>
-      writer
-        .write(`if (instrumentationRules.check(`)
-        .write(`{path: '${relativePathForCollectorMap(sourceFile.getFilePath().slice(0, -3))}', name: '${sourceFunction.getName()}'}`)
-        .write(`))`)
-        .write(`return ${sourceFunction.getName()}Real`).newLine()
-        .write('else').newLine()
-        .write(`return ${wrapFunction.getName()}`))
-    wrapFile.addStatements(`export const ${sourceFunction.getName()}Instrumented = ${sourceFunction.getName()}ToReturn()`)
-  }
-
   private wrapInTryCatch(wrapFunc: FunctionDeclaration) {
     wrapFunc.getBody()!.replaceWithText(writer =>
       writer
@@ -170,6 +153,29 @@ export class FunctionInstrumenter {
         )
         .write('}}')
     )
+  }
+
+  private addIfOnSourceFile(sourceFunction: FunctionDeclaration) {
+    let parametersList: string[] = []
+    sourceFunction.getParameters().forEach(par => {
+      parametersList.push(par.getName())
+    })
+    const sourceFilePath = sourceFunction.getSourceFile().getFilePath().slice(0, -3)
+    sourceFunction.insertStatements(0, writer => writer.writeLine(`if( instrumentationRules.check( 
+    {path: '${relativePathForCollectorMap(sourceFilePath)}', name: '${sourceFunction.getName()}'}))
+    {return ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
+  }
+
+  private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile) {
+    if (sourceFunction.getStatements()[0]!.getText().includes('instrumentationRules'))
+      sourceFunction.removeStatement(0)
+    sourceFile.getImportDeclarations().forEach(imp => {
+      if (imp.getFullText().includes('instrumentationRules'))
+        imp.remove()
+      else if (imp.getFullText().includes(`instrumentation/${sourceFile.getBaseNameWithoutExtension()}`))
+        imp.remove()
+    })
+
   }
 }
 
