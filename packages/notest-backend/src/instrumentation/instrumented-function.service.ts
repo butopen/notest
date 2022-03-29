@@ -22,18 +22,13 @@ export class InstrumentedFunctionService {
                 line integer,
                 functionname text,
                 filepath text,
-                fired TIMESTAMPTZ,
+                fired bigint,
                 other JSONB,
                 created TIMESTAMPTZ
             );
         `)
   }
-
-  save(event: InstrumentedFunctionEvent) {
-    this.db.query(``)
-  }
-
-
+  
   async bulkSave(data: InstrumentedFunctionEvent[]): Promise<{ infoid: number }[]> {
     let index = 1
     let params: any[] = []
