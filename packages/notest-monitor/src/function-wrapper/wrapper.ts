@@ -161,9 +161,8 @@ export class FunctionInstrumenter {
       parametersList.push(par.getName())
     })
     const sourceFilePath = sourceFunction.getSourceFile().getFilePath().slice(0, -3)
-    sourceFunction.insertStatements(0, writer => writer.writeLine(`if( instrumentationRules.check( 
-    {path: '${relativePathForCollectorMap(sourceFilePath)}', name: '${sourceFunction.getName()}'}))
-    {return ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
+    sourceFunction.insertStatements(0, writer =>
+      writer.writeLine(`/* decorated by notest... just ignore -> */if( instrumentationRules.check( {path: '${relativePathForCollectorMap(sourceFilePath)}', name: '${sourceFunction.getName()}'})){return ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
   }
 
   private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile) {
