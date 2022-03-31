@@ -35,12 +35,3 @@ function x(a:number, b:number){
 export {instrumentedX as x, x as xOriginal}
  */
 
-
-export function x(a: number, b: number) {
-  /* decorated by notest... just ignore -> */
-  if (instrLogic()) return instrumentedXFunction(a, b)
-  return a + b
-}
-
-
-

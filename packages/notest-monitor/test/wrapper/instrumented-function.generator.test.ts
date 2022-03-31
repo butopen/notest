@@ -1,5 +1,5 @@
 import {FunctionDeclaration, Project, SourceFile, SyntaxKind} from "ts-morph";
-import {FunctionInstrumenter} from "../../src/function-wrapper/wrapper";
+import {FunctionInstrumenter} from "../../src/function-instrumenter/function-instrumenter";
 
 
 describe(`Testing Instrumentation Functions`, () => {
