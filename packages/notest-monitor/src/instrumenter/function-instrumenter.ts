@@ -1,11 +1,13 @@
 import {FunctionDeclaration, Node, Project, SourceFile, SyntaxKind} from "ts-morph";
-import {VariableInstrumenter} from "./statements-instrumenters/variable-instrumenter";
-import {ExpressionInstrumenter} from "./statements-instrumenters/expression-instrumenter";
-import {ReturnInstrumenter} from "./statements-instrumenters/return-instrumenter";
-import {InstrumentStatementInterface} from "./statements-instrumenters/instrument-statement.interface";
+import {VariableInstrumenter} from "./instrumenter-utils/statements-instrumenters/variable-instrumenter";
+import {ExpressionInstrumenter} from "./instrumenter-utils/statements-instrumenters/expression-instrumenter";
+import {ReturnInstrumenter} from "./instrumenter-utils/statements-instrumenters/return-instrumenter";
+import {
+  InstrumentStatementInterface
+} from "./instrumenter-utils/statements-instrumenters/instrument-statement.interface";
 import {collectorCreator} from "../../../notest-collector/src/collector-creator";
 import * as path from "path";
-import {ImportInstrumenter} from "./import-instrumenter";
+import {ImportInstrumenter} from "./instrumenter-utils/import-instrumenter";
 
 export class FunctionInstrumenter {
   private project: Project;
@@ -82,10 +84,10 @@ export class FunctionInstrumenter {
     return {sourceFile, sourceFunction, wrapFile, wrapFunction}
   }
 
-  private setParametersCollectors(func: FunctionDeclaration, wrapFunc: FunctionDeclaration) {
+  private setParametersCollectors(sourceFunc: FunctionDeclaration, wrapFunc: FunctionDeclaration) {
     const parameters: { name: string, type: string }[] = []
 
-    func.getParameters().forEach(param => {
+    sourceFunc.getParameters().forEach(param => {
       parameters.push({
         name: param.getName(),
         type: param.getType().getText()

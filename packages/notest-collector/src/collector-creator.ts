@@ -1,4 +1,4 @@
-import {relativePathForCollectorMap} from "../../notest-monitor/src/function-instrumenter/function-instrumenter";
+import {relativePathForCollectorMap} from "../../notest-monitor/src/instrumenter/function-instrumenter";
 
 class CollectorCreator {
 

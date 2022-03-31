@@ -1,6 +1,6 @@
 import * as chokidar from "chokidar";
 import {FSWatcher} from "chokidar";
-import {FunctionInstrumenter} from "../function-instrumenter/function-instrumenter";
+import {FunctionInstrumenter} from "../instrumenter/function-instrumenter";
 
 export class EventsListener {
   private watcher: FSWatcher;
