@@ -1,13 +1,7 @@
-import {FunctionDeclaration, MethodDeclaration, Node, Project, SourceFile, SyntaxKind} from "ts-morph";
-import {VariableInstrumenter} from "./instrumenter-utils/statements-instrumenters/variable-instrumenter";
-import {ExpressionInstrumenter} from "./instrumenter-utils/statements-instrumenters/expression-instrumenter";
-import {ReturnInstrumenter} from "./instrumenter-utils/statements-instrumenters/return-instrumenter";
-import {
-  InstrumentStatementInterface
-} from "./instrumenter-utils/statements-instrumenters/instrument-statement.interface";
-import {collectorCreator} from "../../../notest-collector/src/collector-creator";
+import {FunctionDeclaration, MethodDeclaration, Project, SourceFile} from "ts-morph";
 import {ImportInstrumenter} from "./instrumenter-utils/import-instrumenter";
 import {relativePathForCollectorMap} from "./function-instrumenter";
+import {InsturmenterUtils} from "./instrumenter-utils/insturmenter.utils";
 
 export class MethodInstrumenter {
   private project: Project;
@@ -19,6 +13,7 @@ export class MethodInstrumenter {
   }
 
   instrument(sourceFilePath: string, className: string, methodName: string) {
+    const instrumenterUtils = new InsturmenterUtils()
     console.log("instrumenting " + methodName)
     const {
       sourceFile,
@@ -37,13 +32,13 @@ export class MethodInstrumenter {
       wrapFunction.addStatements(sourceMethod.getBodyText()!)
     } else throw new Error("Function hasn't body")
 
-    this.instrumentBody(wrapFunction)
+    instrumenterUtils.instrumentBody(wrapFunction)
 
     // Instrument input parameters
     wrapFunction.addParameters([{name: 'this'}])
-    this.setParametersCollectors(sourceMethod, wrapFunction)
+    instrumenterUtils.setParametersCollectors(sourceMethod, wrapFunction)
 
-    this.wrapInTryCatch(wrapFunction)
+    instrumenterUtils.wrapInTryCatch(wrapFunction)
 
     this.addCallInSourceFile(sourceMethod, className, sourceFile)
     const nameFunctionToImport = 'instrument_' + sourceMethod.getName()
@@ -79,78 +74,6 @@ export class MethodInstrumenter {
     return {sourceFile, sourceMethod, wrapFile, wrapFunction, instrumentFunction}
   }
 
-  private setParametersCollectors(sourceFunc: FunctionDeclaration | MethodDeclaration, wrapFunc: FunctionDeclaration) {
-    const parameters: { name: string, type: string }[] = []
-
-    sourceFunc.getParameters().forEach(param => {
-      parameters.push({
-        name: param.getName(),
-        type: param.getType().getText()
-      })
-      wrapFunc.insertStatements(0,
-        collectorCreator.addInfo(
-          param.getName(),
-          'input',
-          wrapFunc.getName()!,
-          wrapFunc.getSourceFile().getBaseName(),
-          wrapFunc.getStartLineNumber())
-      )
-    })
-
-    wrapFunc.addParameters(parameters)
-  }
-
-  private instrumentBody(wrapFunction: FunctionDeclaration) {
-    wrapFunction.getChildren().forEach(
-      child => this.instrumentStatementRec(wrapFunction, child)
-    )
-  }
-
-  private instrumentStatementRec(wrapFunction: FunctionDeclaration, node: Node) {
-    node.getChildren().forEach(
-      childStatement => this.instrumentStatementRec(wrapFunction, childStatement))
-    if (this.toBeInstrumented(node)) {
-      const instrumenter: InstrumentStatementInterface = this.setKind(node)
-      instrumenter.addCollector(node, wrapFunction)
-    }
-  }
-
-  private toBeInstrumented(node: Node): Boolean {
-    const statementsToInstrument = [SyntaxKind.VariableStatement, SyntaxKind.ExpressionStatement, SyntaxKind.ReturnStatement]
-    return statementsToInstrument.includes(node.getKind())
-  }
-
-  private setKind(node: Node) {
-    switch (node.getKind()) {
-      case SyntaxKind.VariableStatement:
-        return new VariableInstrumenter()
-      case SyntaxKind.ExpressionStatement:
-        return new ExpressionInstrumenter()
-      case SyntaxKind.ReturnStatement:
-        return new ReturnInstrumenter()
-      default:
-        throw new Error("Not Provided")
-    }
-  }
-
-  private wrapInTryCatch(wrapFunc: FunctionDeclaration) {
-    wrapFunc.getBody()!.replaceWithText(writer =>
-      writer
-        .write('{').newLine()
-        .write('try {').newLine()
-        .write(wrapFunc.getBodyText()!)
-        .write('} catch (error: any) {').newLine()
-        .write(
-          collectorCreator.addInfo(
-            'error.message',
-            'exception',
-            wrapFunc.getName()!,
-            wrapFunc.getSourceFile().getFilePath(),
-            wrapFunc.getStartLineNumber())
-        )
-        .write('}}')
-    )
-  }
 
   private addCallInSourceFile(sourceMethod: MethodDeclaration, className: string, sourceFile: SourceFile) {
     const sourceFilePath = sourceFile.getFilePath().slice(0, -3)

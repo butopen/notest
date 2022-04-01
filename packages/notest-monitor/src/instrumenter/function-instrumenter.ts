@@ -1,13 +1,7 @@
-import {FunctionDeclaration, Node, Project, SourceFile, SyntaxKind} from "ts-morph";
-import {VariableInstrumenter} from "./instrumenter-utils/statements-instrumenters/variable-instrumenter";
-import {ExpressionInstrumenter} from "./instrumenter-utils/statements-instrumenters/expression-instrumenter";
-import {ReturnInstrumenter} from "./instrumenter-utils/statements-instrumenters/return-instrumenter";
-import {
-  InstrumentStatementInterface
-} from "./instrumenter-utils/statements-instrumenters/instrument-statement.interface";
-import {collectorCreator} from "../../../notest-collector/src/collector-creator";
+import {FunctionDeclaration, Project, SourceFile} from "ts-morph";
 import * as path from "path";
 import {ImportInstrumenter} from "./instrumenter-utils/import-instrumenter";
+import {InsturmenterUtils} from "./instrumenter-utils/insturmenter.utils";
 
 export class FunctionInstrumenter {
   private project: Project;
@@ -29,6 +23,7 @@ export class FunctionInstrumenter {
   }
 
   instrument(sourceFilePath: string, functionName: string) {
+    const instrumenterUtils = new InsturmenterUtils()
     console.log("instrumenting " + functionName)
     const {sourceFile, sourceFunction, wrapFile, wrapFunction} = this.initialize(sourceFilePath, functionName)
 
@@ -41,12 +36,12 @@ export class FunctionInstrumenter {
       wrapFunction.addStatements(sourceFunction.getBodyText()!)
     } else throw new Error("Function hasn't body")
 
-    this.instrumentBody(wrapFunction)
+    instrumenterUtils.instrumentBody(wrapFunction)
 
     // Instrument input parameters
-    this.setParametersCollectors(sourceFunction, wrapFunction)
+    instrumenterUtils.setParametersCollectors(sourceFunction, wrapFunction)
 
-    this.wrapInTryCatch(wrapFunction)
+    instrumenterUtils.wrapInTryCatch(wrapFunction)
 
     this.addIfOnSourceFile(sourceFunction)
 
@@ -82,79 +77,6 @@ export class FunctionInstrumenter {
     return {sourceFile, sourceFunction, wrapFile, wrapFunction}
   }
 
-  private setParametersCollectors(sourceFunc: FunctionDeclaration, wrapFunc: FunctionDeclaration) {
-    const parameters: { name: string, type: string }[] = []
-
-    sourceFunc.getParameters().forEach(param => {
-      parameters.push({
-        name: param.getName(),
-        type: param.getType().getText()
-      })
-      wrapFunc.insertStatements(0,
-        collectorCreator.addInfo(
-          param.getName(),
-          'input',
-          wrapFunc.getName()!,
-          wrapFunc.getSourceFile().getBaseName(),
-          wrapFunc.getStartLineNumber())
-      )
-    })
-
-    wrapFunc.addParameters(parameters)
-  }
-
-  private instrumentBody(wrapFunction: FunctionDeclaration) {
-    wrapFunction.getChildren().forEach(
-      child => this.instrumentStatementRec(wrapFunction, child)
-    )
-  }
-
-  private instrumentStatementRec(wrapFunction: FunctionDeclaration, node: Node) {
-    node.getChildren().forEach(
-      childStatement => this.instrumentStatementRec(wrapFunction, childStatement))
-    if (this.toBeInstrumented(node)) {
-      const instrumenter: InstrumentStatementInterface = this.setKind(node)
-      instrumenter.addCollector(node, wrapFunction)
-    }
-  }
-
-  private toBeInstrumented(node: Node): Boolean {
-    const statementsToInstrument = [SyntaxKind.VariableStatement, SyntaxKind.ExpressionStatement, SyntaxKind.ReturnStatement]
-    return statementsToInstrument.includes(node.getKind())
-  }
-
-  private setKind(node: Node) {
-    switch (node.getKind()) {
-      case SyntaxKind.VariableStatement:
-        return new VariableInstrumenter()
-      case SyntaxKind.ExpressionStatement:
-        return new ExpressionInstrumenter()
-      case SyntaxKind.ReturnStatement:
-        return new ReturnInstrumenter()
-      default:
-        throw new Error("Not Provided")
-    }
-  }
-
-  private wrapInTryCatch(wrapFunc: FunctionDeclaration) {
-    wrapFunc.getBody()!.replaceWithText(writer =>
-      writer
-        .write('{').newLine()
-        .write('try {').newLine()
-        .write(wrapFunc.getBodyText()!)
-        .write('} catch (error: any) {').newLine()
-        .write(
-          collectorCreator.addInfo(
-            'error.message',
-            'exception',
-            wrapFunc.getName()!,
-            wrapFunc.getSourceFile().getFilePath(),
-            wrapFunc.getStartLineNumber())
-        )
-        .write('}}')
-    )
-  }
-
   private addIfOnSourceFile(sourceFunction: FunctionDeclaration) {
     let parametersList: string[] = []
     sourceFunction.getParameters().forEach(par => {
@@ -174,7 +96,6 @@ export class FunctionInstrumenter {
         || imp.getFullText().includes(`instrumentation/${sourceFile.getBaseNameWithoutExtension()}`))
         imp.remove()
     })
-
   }
 }
 
