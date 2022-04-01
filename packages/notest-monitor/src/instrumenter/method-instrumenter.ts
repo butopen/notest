@@ -40,6 +40,7 @@ export class MethodInstrumenter {
     this.instrumentBody(wrapFunction)
 
     // Instrument input parameters
+    wrapFunction.addParameters([{name: 'this'}])
     this.setParametersCollectors(sourceMethod, wrapFunction)
 
     this.wrapInTryCatch(wrapFunction)
