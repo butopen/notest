@@ -1,4 +1,4 @@
-import {FunctionDeclaration, SourceFile} from "ts-morph";
+import {SourceFile} from "ts-morph";
 
 export class ImportInstrumenter {
 
@@ -11,10 +11,10 @@ export class ImportInstrumenter {
         .write(`import {collector} from '@butopen/notest-collector'`).newLine())
   }
 
-  addImportsSourceFile(sourceFile: SourceFile, wrapFunction: FunctionDeclaration) {
+  addImportsSourceFile(sourceFile: SourceFile, nameFunction) {
 
     sourceFile.insertStatements(0, writer => {
-      writer.write(`import {${wrapFunction.getName()}} from './instrumentation/${sourceFile.getBaseNameWithoutExtension()}'`).newLine()
+      writer.write(`import {${nameFunction}} from './instrumentation/${sourceFile.getBaseNameWithoutExtension()}'`).newLine()
       writer.write(`import {instrumentationRules} from '@butopen/notest-collector'`).newLine()
     })
   }

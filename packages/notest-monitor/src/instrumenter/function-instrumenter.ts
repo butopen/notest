@@ -50,7 +50,8 @@ export class FunctionInstrumenter {
 
     this.addIfOnSourceFile(sourceFunction)
 
-    importInstrumenter.addImportsSourceFile(sourceFile, wrapFunction)
+    const nameFunctionToImport = wrapFunction.getName()
+    importInstrumenter.addImportsSourceFile(sourceFile, nameFunctionToImport)
 
     wrapFile.organizeImports()
     wrapFile.formatText()
@@ -70,15 +71,12 @@ export class FunctionInstrumenter {
 
     let wrapFile = this.project.getSourceFile(pathWrapFile)
     let wrapFunction: FunctionDeclaration | undefined
-    if (wrapFile) {
+    if (!wrapFile) wrapFile = this.project.createSourceFile(pathWrapFile)
+    else {
       wrapFunction = wrapFile.getFunction(wrapFunctionName)
-      if (wrapFunction) {
-        wrapFunction.remove()
-        console.log('Function deleted and recreated')
-      }
-    } else {
-      wrapFile = this.project.createSourceFile(pathWrapFile)
+      if (wrapFunction) wrapFunction.remove()
     }
+
     wrapFunction = wrapFile.addFunction({name: wrapFunctionName, isExported: true})
 
     return {sourceFile, sourceFunction, wrapFile, wrapFunction}
@@ -168,12 +166,12 @@ export class FunctionInstrumenter {
   }
 
   private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile) {
-    if (sourceFunction.getStatements()[0]!.getText().includes('instrumentationRules'))
+    if (sourceFunction.getStatements()[0]!.getText().includes('instrumentationRules')) {
       sourceFunction.removeStatement(0)
+    }
     sourceFile.getImportDeclarations().forEach(imp => {
-      if (imp.getFullText().includes('instrumentationRules'))
-        imp.remove()
-      else if (imp.getFullText().includes(`instrumentation/${sourceFile.getBaseNameWithoutExtension()}`))
+      if (imp.getFullText().includes('instrumentationRules')
+        || imp.getFullText().includes(`instrumentation/${sourceFile.getBaseNameWithoutExtension()}`))
         imp.remove()
     })
 
