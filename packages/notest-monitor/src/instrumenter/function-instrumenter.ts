@@ -1,7 +1,7 @@
 import {FunctionDeclaration, Project, SourceFile} from "ts-morph";
 import * as path from "path";
 import {ImportInstrumenter} from "./instrumenter-utils/import-instrumenter";
-import {InsturmenterUtils} from "./instrumenter-utils/insturmenter.utils";
+import {InstrumenterUtils} from "./instrumenter-utils/instrumenter.utils";
 
 export class FunctionInstrumenter {
   private project: Project;
@@ -23,7 +23,7 @@ export class FunctionInstrumenter {
   }
 
   instrument(sourceFilePath: string, functionName: string) {
-    const instrumenterUtils = new InsturmenterUtils()
+    const instrumenterUtils = new InstrumenterUtils()
     console.log("instrumenting " + functionName)
     const {sourceFile, sourceFunction, wrapFile, wrapFunction} = this.initialize(sourceFilePath, functionName)
 

@@ -5,7 +5,7 @@ import {ExpressionInstrumenter} from "./statements-instrumenters/expression-inst
 import {ReturnInstrumenter} from "./statements-instrumenters/return-instrumenter";
 import {collectorCreator} from "../../../../notest-collector/src/collector-creator";
 
-export class InsturmenterUtils {
+export class InstrumenterUtils {
   setParametersCollectors(sourceFunc: FunctionDeclaration | MethodDeclaration, wrapFunc: FunctionDeclaration) {
     const parameters: { name: string, type: string }[] = []
 

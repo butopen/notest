@@ -1,7 +1,7 @@
 import {FunctionDeclaration, MethodDeclaration, Project, SourceFile} from "ts-morph";
 import {ImportInstrumenter} from "./instrumenter-utils/import-instrumenter";
 import {relativePathForCollectorMap} from "./function-instrumenter";
-import {InsturmenterUtils} from "./instrumenter-utils/insturmenter.utils";
+import {InstrumenterUtils} from "./instrumenter-utils/instrumenter.utils";
 
 export class MethodInstrumenter {
   private project: Project;
@@ -13,7 +13,7 @@ export class MethodInstrumenter {
   }
 
   instrument(sourceFilePath: string, className: string, methodName: string) {
-    const instrumenterUtils = new InsturmenterUtils()
+    const instrumenterUtils = new InstrumenterUtils()
     console.log("instrumenting " + methodName)
     const {
       sourceFile,
