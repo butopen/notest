@@ -7,18 +7,20 @@ export class VariableInstrumenter implements InstrumentStatementInterface {
   addCollector(statement: Statement, wrapFunction: FunctionDeclaration) {
     const variableStatement: VariableStatement = statement.asKindOrThrow(SyntaxKind.VariableStatement)
     variableStatement.getDeclarations().forEach(declaration => {
-        statement.replaceWithText(writer =>
-          writer
-            .writeLine(statement.getFullText()).newLine()
-            .write(
-              collectorCreator.addInfo(
-                declaration.getName(),
-                "variable",
-                wrapFunction.getName()!,
-                wrapFunction.getSourceFile().getFilePath(),
-                variableStatement.getStartLineNumber())
-            )
-        )
+        if (declaration.getInitializer()) {
+          statement.replaceWithText(writer =>
+            writer
+              .writeLine(statement.getFullText()).newLine()
+              .write(
+                collectorCreator.addInfo(
+                  declaration.getName(),
+                  "variable",
+                  wrapFunction.getName()!,
+                  wrapFunction.getSourceFile().getFilePath(),
+                  variableStatement.getStartLineNumber())
+              )
+          )
+        }
       }
     )
   }

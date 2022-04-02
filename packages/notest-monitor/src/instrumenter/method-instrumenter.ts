@@ -12,6 +12,13 @@ export class MethodInstrumenter {
     });
   }
 
+  instrumentFileMethods(path: string) {
+    const classes = this.project.getSourceFileOrThrow(path).getClasses()
+    classes.forEach(clas => {
+      clas.getMethods().forEach(method => this.instrument(path, clas.getName()!, method.getName()))
+    })
+  }
+
   instrument(sourceFilePath: string, className: string, methodName: string) {
     const instrumenterUtils = new InstrumenterUtils()
     console.log("instrumenting " + methodName)
@@ -30,7 +37,9 @@ export class MethodInstrumenter {
     // Add body
     if (sourceMethod.getBodyText()) {
       wrapFunction.addStatements(sourceMethod.getBodyText()!)
-    } else throw new Error("Function hasn't body")
+    } else {
+      throw new Error("Function hasn't body")
+    }
 
     instrumenterUtils.instrumentBody(wrapFunction)
 
@@ -57,12 +66,14 @@ export class MethodInstrumenter {
     const pathWrapFile = sourceFile.getDirectoryPath() + '/instrumentation/' + sourceFile.getBaseName()
     const wrapFunctionName = 'instrument_' + methodName
     let wrapFile = this.project.getSourceFile(pathWrapFile)
-    let instrumentFunction: FunctionDeclaration | undefined
+    let instrumentFunction: FunctionDeclaration
 
-    if (!wrapFile) wrapFile = this.project.createSourceFile(pathWrapFile)
-    else {
-      instrumentFunction = wrapFile.getFunction(wrapFunctionName)
-      if (instrumentFunction) instrumentFunction.remove()
+    if (!wrapFile) {
+      wrapFile = this.project.createSourceFile(pathWrapFile)
+    } else {
+      if (wrapFile.getFunction(wrapFunctionName)) {
+        wrapFile.getFunction(wrapFunctionName)!.remove()
+      }
     }
     instrumentFunction = wrapFile.addFunction({name: wrapFunctionName, isExported: true})
     instrumentFunction.addParameters([{name: className}])
@@ -82,14 +93,18 @@ export class MethodInstrumenter {
 
   private cleanOnInit(sourceFile: SourceFile, className: string, methodName: string) {
     sourceFile.getStatements().forEach(stat => {
-      if (stat.getText().includes(`{instrument_${methodName}(${className})}`))
+      if (stat.getText().includes(`{instrument_${methodName}(${className})}`)) {
         stat.remove()
+      }
     })
     sourceFile.getImportDeclarations().forEach(imp => {
-      if (imp.getFullText().includes('instrumentationRules')
-        || imp.getFullText().includes(`instrumentation/${sourceFile.getBaseNameWithoutExtension()}`))
-        imp.remove()
+      if (imp.getImportClause()) {
+        if (imp.getImportClause()!.getText().includes(`instrument_${methodName}`)) {
+          imp.getImportClause()!.getNamedImports().find(name => name.getText() == `instrument_${methodName}`)?.remove()
+        } else if (imp.getFullText().includes('instrumentationRules')) {
+          imp.remove()
+        }
+      }
     })
-
   }
 }
