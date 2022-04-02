@@ -1,10 +1,12 @@
 import * as chokidar from "chokidar";
 import {FSWatcher} from "chokidar";
 import {FunctionInstrumenter} from "../instrumenter/function-instrumenter";
+import {MethodInstrumenter} from "../instrumenter/method-instrumenter";
 
 export class EventsListener {
   private watcher: FSWatcher;
-  private instrumenter: FunctionInstrumenter;
+  private functionInstrumenter: FunctionInstrumenter;
+  private methodInstrumenter: MethodInstrumenter;
   private readonly path: string;
 
   constructor(path) {
@@ -13,7 +15,8 @@ export class EventsListener {
       ignored: '**/instrumentation/**', // ignore dotfiles
       persistent: true
     });
-    this.instrumenter = new FunctionInstrumenter()
+    this.functionInstrumenter = new FunctionInstrumenter()
+    this.methodInstrumenter = new MethodInstrumenter()
   }
 
   async listen() {
@@ -23,7 +26,7 @@ export class EventsListener {
       })
       .on('change', path => {
         console.log("changed file at " + path)
-        this.addFunctions(path)
+        this.controlChanges(path)
       })
     return this.path
   }
@@ -33,10 +36,13 @@ export class EventsListener {
   }
 
   private addFunctions(path: string) {
-    this.instrumenter.instrumentFileFunctions(path)
+    this.functionInstrumenter.instrumentFileFunctions(path)
+    this.methodInstrumenter.instrumentFileMethods(path)
   }
 
   private controlChanges(path: string) {
-    this.instrumenter.instrumentFileFunctions(path)
+    this.functionInstrumenter.instrumentFileFunctions(path)
+    this.methodInstrumenter.instrumentFileMethods(path)
+    this.stopListen()
   }
 }
