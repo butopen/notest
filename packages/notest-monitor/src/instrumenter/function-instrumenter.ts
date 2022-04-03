@@ -6,10 +6,8 @@ import {InstrumenterUtils} from "./instrumenter-utils/instrumenter.utils";
 export class FunctionInstrumenter {
   private project: Project;
 
-  constructor() {
-    this.project = new Project({
-      tsConfigFilePath: "tsconfig.json",
-    });
+  constructor(project: Project) {
+    this.project = project
   }
 
   instrumentFileFunctions(path: string) {
@@ -66,10 +64,13 @@ export class FunctionInstrumenter {
 
     let wrapFile = this.project.getSourceFile(pathWrapFile)
     let wrapFunction: FunctionDeclaration | undefined
-    if (!wrapFile) wrapFile = this.project.createSourceFile(pathWrapFile)
-    else {
+    if (!wrapFile) {
+      wrapFile = this.project.createSourceFile(pathWrapFile)
+    } else {
       wrapFunction = wrapFile.getFunction(wrapFunctionName)
-      if (wrapFunction) wrapFunction.remove()
+      if (wrapFunction) {
+        wrapFunction.remove()
+      }
     }
 
     wrapFunction = wrapFile.addFunction({name: wrapFunctionName, isExported: true})
@@ -93,8 +94,9 @@ export class FunctionInstrumenter {
     }
     sourceFile.getImportDeclarations().forEach(imp => {
       if (imp.getFullText().includes('instrumentationRules')
-        || imp.getFullText().includes(`instrumentation/${sourceFile.getBaseNameWithoutExtension()}`))
+        || imp.getFullText().includes(`instrumentation/${sourceFile.getBaseNameWithoutExtension()}`)) {
         imp.remove()
+      }
     })
   }
 }

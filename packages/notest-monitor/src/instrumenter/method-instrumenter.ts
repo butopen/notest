@@ -6,10 +6,8 @@ import {InstrumenterUtils} from "./instrumenter-utils/instrumenter.utils";
 export class MethodInstrumenter {
   private project: Project;
 
-  constructor() {
-    this.project = new Project({
-      tsConfigFilePath: "tsconfig.json",
-    });
+  constructor(project: Project) {
+    this.project = project
   }
 
   instrumentFileMethods(path: string) {
