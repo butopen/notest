@@ -1,6 +1,6 @@
 import {Expression, ExpressionStatement, FunctionDeclaration, SyntaxKind} from "ts-morph"
 import {InstrumentStatementInterface} from "./instrument-statement.interface";
-import {collectorCreator} from "../../../../../notest-collector/src/collector-creator";
+import {collectorCreator} from "@butopen/notest-collector";
 
 export class ExpressionInstrumenter implements InstrumentStatementInterface {
 

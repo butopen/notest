@@ -1,4 +1,4 @@
-import {relativePathForCollectorMap} from "../../notest-monitor/src/instrumenter/function-instrumenter";
+import path from "path";
 
 class CollectorCreator {
 
@@ -9,7 +9,7 @@ class CollectorCreator {
       value: ${variableToCollect},
       line: ${line},
       function: '${functionName}',
-      file: '${relativePathForCollectorMap(filePath)}',
+      file: '${this.relativePathForCollectorMap(filePath)}',
       timestamp: Date.now(),
       other: ${other}
     })`
@@ -19,9 +19,14 @@ class CollectorCreator {
       value: ${variableToCollect},
       line: ${line},
       function: '${functionName}',
-      file: '${relativePathForCollectorMap(filePath)}',
+      file: '${this.relativePathForCollectorMap(filePath)}',
       timestamp: Date.now()
     })`
+  }
+
+  relativePathForCollectorMap(pathAbs: string) {
+    let relPath = path.relative(path.resolve("."), pathAbs).toString()
+    return relPath.replace(/\\/g, '/')
   }
 }
 

@@ -1,6 +1,6 @@
 import {FunctionDeclaration, MethodDeclaration, Project, SourceFile} from "ts-morph";
 import {ImportInstrumenter} from "./instrumenter-utils/import-instrumenter";
-import {relativePathForCollectorMap} from "./function-instrumenter";
+import {collectorCreator} from "@butopen/notest-collector"
 import {InstrumenterUtils} from "./instrumenter-utils/instrumenter.utils";
 
 export class MethodInstrumenter {
@@ -89,7 +89,7 @@ export class MethodInstrumenter {
 
   private addCallInSourceFile(sourceMethod: MethodDeclaration, className: string, sourceFile: SourceFile) {
     const sourceFilePath = sourceFile.getFilePath().slice(0, -3)
-    sourceFile.addStatements(`/* decorated by notest... just ignore -> */if( instrumentationRules.check( {path: '${relativePathForCollectorMap(sourceFilePath)}', name: '${sourceMethod.getName()}'})){instrument_${sourceMethod.getName()}(${className})}`)
+    sourceFile.addStatements(`/* decorated by notest... just ignore -> */if( instrumentationRules.check( {path: '${collectorCreator.relativePathForCollectorMap(sourceFilePath)}', name: '${sourceMethod.getName()}'})){instrument_${sourceMethod.getName()}(${className})}`)
   }
 
   private cleanOnInit(sourceFile: SourceFile, className: string, methodName: string) {
