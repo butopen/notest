@@ -6,6 +6,7 @@ const options = {
     bundle: true,
     minify: false,
     sourcemap: true,
+    platform: 'node',
     format: 'esm',
     target: 'es2020',
     outfile: 'dist/index.js',
