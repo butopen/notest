@@ -6,7 +6,8 @@ export class ImportInstrumenter {
     sourceFile.getImportDeclarations().forEach(imp => {
       const importClause = imp.getImportClause() ?? imp.getDefaultImport()
       let importModule: string
-      if (imp.getModuleSpecifier().getText().search(/[\\@\/]/g) != -1) {
+      if (imp.getModuleSpecifier().getText().search(/[\\\/]/g) != -1
+        && !imp.getModuleSpecifier().getText().includes('@')) {
         importModule = '../' + imp.getModuleSpecifier().getText().slice(1, -1)
       } else {
         importModule = imp.getModuleSpecifier().getText().slice(1, -1)
