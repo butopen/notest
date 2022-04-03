@@ -73,6 +73,7 @@ export class MethodInstrumenter {
     } else {
       if (wrapFile.getFunction(wrapFunctionName)) {
         wrapFile.getFunction(wrapFunctionName)!.remove()
+        wrapFile.organizeImports()
       }
     }
     instrumentFunction = wrapFile.addFunction({name: wrapFunctionName, isExported: true})
@@ -101,6 +102,9 @@ export class MethodInstrumenter {
       if (imp.getImportClause()) {
         if (imp.getImportClause()!.getText().includes(`instrument_${methodName}`)) {
           imp.getImportClause()!.getNamedImports().find(name => name.getText() == `instrument_${methodName}`)?.remove()
+          if (!imp.getImportClause()) {
+            imp.remove()
+          }
         } else if (imp.getFullText().includes('instrumentationRules')) {
           imp.remove()
         }
