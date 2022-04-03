@@ -8,21 +8,24 @@ class NoTestCollector {
   }
 
   private static async send(events: InstrumentedFunctionEvent[]) {
-    let options1 = {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(events),
-    };
+    if (events) {
+      let options1 = {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(events),
+      };
 
-    let response = await fetch(
-      "http://localhost:3000/api/instrumented-function-event",
-      options1
-    );
-    if (response.ok)
-      NoTestCollector.eventsToSend.splice(0)
+      let response = await fetch(
+        "http://localhost:3000/api/instrumented-function-event",
+        options1
+      );
+      if (response.ok) {
+        NoTestCollector.eventsToSend.splice(0)
+      }
+    }
   }
 
   /**
@@ -30,8 +33,9 @@ class NoTestCollector {
    * @param event
    */
   async collect(event: InstrumentedFunctionEvent) {
-    if (!NoTestCollector.eventsToSend)
+    if (!NoTestCollector.eventsToSend) {
       NoTestCollector.eventsToSend = []
+    }
     NoTestCollector.eventsToSend.push(event)
   }
 }
