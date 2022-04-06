@@ -26,7 +26,7 @@ describe(`Testing Instrumentation Methods`, () => {
 
     const fileSource = project.createSourceFile(pathTestFunction, functionCode)
     fileSource.saveSync()
-    const methodInstrumenter = new MethodInstrumenter()
+    const methodInstrumenter = new MethodInstrumenter(project)
 
     const result: SourceFile = methodInstrumenter.instrument(fileSource.getFilePath(), "TestClass", "testMethod")
     result.saveSync()

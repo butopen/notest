@@ -19,7 +19,7 @@ describe(`Testing Instrumentation Functions`, () => {
   test("test function with parameters and old statements of instrumentation", async () => {
 
     const functionCode = `
-    import {testFunctionInsturmente} from "./instrumetation/test"
+    import {testFunctionInsturmented} from "./instrumetation/test"
     
     export function testFunction(x:number, y:number) {
         if( instrumentationRules.check() ) {return testFunctionInstrumented(x,y)}
@@ -30,7 +30,7 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const fileSource = project.createSourceFile(pathTestFunction, functionCode)
     fileSource.saveSync()
-    const functionInstrumenter = new FunctionInstrumenter()
+    const functionInstrumenter = new FunctionInstrumenter(project)
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
     const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
@@ -53,7 +53,7 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const fileSource = project.createSourceFile(pathTestFunction, functionCode)
     fileSource.saveSync()
-    const functionInstrumenter = new FunctionInstrumenter()
+    const functionInstrumenter = new FunctionInstrumenter(project)
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
     const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
@@ -77,7 +77,7 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const fileSource = project.createSourceFile(pathTestFunction, functionCode)
     fileSource.saveSync()
-    const functionInstrumenter = new FunctionInstrumenter()
+    const functionInstrumenter = new FunctionInstrumenter(project)
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
     const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
@@ -104,7 +104,7 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const fileSource = project.createSourceFile(pathTestFunction, functionCode)
     fileSource.saveSync()
-    const functionInstrumenter = new FunctionInstrumenter()
+    const functionInstrumenter = new FunctionInstrumenter(project)
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
     const numberOfImports = result.getFunctionOrThrow("testFunctionInstrumented")
@@ -126,7 +126,7 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const fileSource = project.createSourceFile(pathTestFunction, functionCode)
     fileSource.saveSync()
-    const functionInstrumenter = new FunctionInstrumenter()
+    const functionInstrumenter = new FunctionInstrumenter(project)
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
     const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
