@@ -19,7 +19,7 @@ describe(`Testing Instrumentation Functions`, () => {
   test("test function with parameters and old statements of instrumentation", async () => {
 
     const functionCode = `
-    import {testFunctionInsturmented} from "./instrumetation/test"
+    import {testFunctionInsturmented} from "./instrumentation/test"
     
     export function testFunction(x:number, y:number) {
         if( instrumentationRules.check() ) {return testFunctionInstrumented(x,y)}

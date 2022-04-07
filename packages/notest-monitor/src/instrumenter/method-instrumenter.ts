@@ -1,6 +1,5 @@
 import {FunctionDeclaration, MethodDeclaration, Project, SourceFile} from "ts-morph";
 import {ImportInstrumenter} from "./instrumenter-utils/import-instrumenter";
-import {collectorCreator} from "@butopen/notest-collector"
 import {InstrumenterUtils} from "./instrumenter-utils/instrumenter.utils";
 
 export class MethodInstrumenter {
@@ -46,10 +45,11 @@ export class MethodInstrumenter {
     instrumenterUtils.setParametersCollectors(sourceMethod, wrapFunction)
 
     instrumenterUtils.wrapInTryCatch(wrapFunction)
-
+    instrumenterUtils.addCheckFunctionInInstrumentedFile(wrapFile, sourceMethod)
     this.addCallInSourceFile(sourceMethod, className, sourceFile)
     const nameFunctionToImport = 'instrument_' + sourceMethod.getName()
-    importInstrumenter.addImportsSourceFile(sourceFile, nameFunctionToImport)
+    importInstrumenter.addImportsSourceFile(sourceFile, nameFunctionToImport, sourceMethod.getName())
+
     instrumentFunction.getBody()!
       .replaceWithText(`{${className}.prototype.${methodName} = ${wrapFunction.getText()}}`)
 
@@ -86,8 +86,7 @@ export class MethodInstrumenter {
 
 
   private addCallInSourceFile(sourceMethod: MethodDeclaration, className: string, sourceFile: SourceFile) {
-    const sourceFilePath = sourceFile.getFilePath().slice(0, -3)
-    sourceFile.addStatements(`/* decorated by notest... just ignore -> */if( instrumentationRules.check( {path: '${collectorCreator.relativePathForCollectorMap(sourceFilePath)}', name: '${sourceMethod.getName()}'})){instrument_${sourceMethod.getName()}(${className})}`)
+    sourceFile.addStatements(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceMethod.getName()}()){instrument_${sourceMethod.getName()}(${className})}`)
   }
 
   private cleanOnInit(sourceFile: SourceFile, className: string, methodName: string) {
@@ -103,7 +102,7 @@ export class MethodInstrumenter {
           if (!imp.getImportClause()) {
             imp.remove()
           }
-        } else if (imp.getFullText().includes('instrumentationRules')) {
+        } else if (imp.getFullText().includes(`useInstrumented_${methodName}`)) {
           imp.remove()
         }
       }

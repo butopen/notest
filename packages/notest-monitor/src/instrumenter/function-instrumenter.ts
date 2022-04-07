@@ -1,5 +1,4 @@
 import {FunctionDeclaration, Project, SourceFile} from "ts-morph";
-import {relativePathForCollectorMap} from "@butopen/notest-collector"
 import {ImportInstrumenter} from "./instrumenter-utils/import-instrumenter";
 import {InstrumenterUtils} from "./instrumenter-utils/instrumenter.utils";
 
@@ -41,10 +40,11 @@ export class FunctionInstrumenter {
 
     instrumenterUtils.wrapInTryCatch(wrapFunction)
 
+    instrumenterUtils.addCheckFunctionInInstrumentedFile(wrapFile, sourceFunction)
     this.addIfOnSourceFile(sourceFunction)
 
     const nameFunctionToImport = wrapFunction.getName()
-    importInstrumenter.addImportsSourceFile(sourceFile, nameFunctionToImport)
+    importInstrumenter.addImportsSourceFile(sourceFile, nameFunctionToImport, sourceFunction.getName())
 
     wrapFile.organizeImports()
     wrapFile.formatText()
@@ -83,9 +83,8 @@ export class FunctionInstrumenter {
     sourceFunction.getParameters().forEach(par => {
       parametersList.push(par.getName())
     })
-    const sourceFilePath = sourceFunction.getSourceFile().getFilePath().slice(0, -3)
     sourceFunction.insertStatements(0, writer =>
-      writer.writeLine(`/* decorated by notest... just ignore -> */if( instrumentationRules.check( {path: '${relativePathForCollectorMap(sourceFilePath)}', name: '${sourceFunction.getName()}'})){return ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
+      writer.writeLine(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceFunction.getName()}()){return ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
   }
 
   private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile) {
@@ -93,7 +92,7 @@ export class FunctionInstrumenter {
       sourceFunction.removeStatement(0)
     }
     sourceFile.getImportDeclarations().forEach(imp => {
-      if (imp.getFullText().includes('instrumentationRules')
+      if (imp.getFullText().includes(`useInstrumented_${sourceFunction.getName()}`)
         || imp.getFullText().includes(`instrumentation/${sourceFile.getBaseNameWithoutExtension()}`)) {
         imp.remove()
       }

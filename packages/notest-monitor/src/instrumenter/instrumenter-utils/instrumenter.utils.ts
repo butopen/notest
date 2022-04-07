@@ -1,9 +1,9 @@
-import {FunctionDeclaration, MethodDeclaration, Node, SyntaxKind} from "ts-morph";
+import {FunctionDeclaration, MethodDeclaration, Node, SourceFile, SyntaxKind} from "ts-morph";
 import {InstrumentStatementInterface} from "./statements-instrumenters/instrument-statement.interface";
 import {VariableInstrumenter} from "./statements-instrumenters/variable-instrumenter";
 import {ExpressionInstrumenter} from "./statements-instrumenters/expression-instrumenter";
 import {ReturnInstrumenter} from "./statements-instrumenters/return-instrumenter";
-import {collectorCreator} from "../../../../notest-collector/src/collector-creator";
+import {collectorCreator, relativePathForCollectorMap} from "@butopen/notest-collector";
 
 export class InstrumenterUtils {
   setParametersCollectors(sourceFunc: FunctionDeclaration | MethodDeclaration, wrapFunc: FunctionDeclaration) {
@@ -44,6 +44,13 @@ export class InstrumenterUtils {
         )
         .write('}}')
     )
+  }
+
+  addCheckFunctionInInstrumentedFile(wrapFile: SourceFile, sourceFunction: FunctionDeclaration | MethodDeclaration) {
+    const sourceFilePath = sourceFunction.getSourceFile().getFilePath().slice(0, -3)
+    const functionName = sourceFunction.getName()
+    const checkFunction = wrapFile.addFunction({name: `useInstrumented_${functionName}`, isExported: true})
+    checkFunction.addStatements(`return instrumentationRules.check( {path: '${relativePathForCollectorMap(sourceFilePath)}', name: '${sourceFunction.getName()}'})`)
   }
 
   instrumentBody(wrapFunction: FunctionDeclaration) {

@@ -17,14 +17,14 @@ export class ImportInstrumenter {
     })
     wrapFile.insertStatements(0, writer =>
       writer
-        .write(`import {collector} from '@butopen/notest-collector'`).newLine())
+        .write(`import {collector} from '@butopen/notest-collector'`).newLine()
+        .write(`import {instrumentationRules} from '@butopen/notest-collector'`).newLine())
   }
 
-  addImportsSourceFile(sourceFile: SourceFile, nameFunction) {
+  addImportsSourceFile(sourceFile: SourceFile, nameWrapFunction, nameSourceFunction) {
 
     sourceFile.insertStatements(0, writer => {
-      writer.write(`import {${nameFunction}} from './instrumentation/${sourceFile.getBaseNameWithoutExtension()}'`).newLine()
-      writer.write(`import {instrumentationRules} from '@butopen/notest-collector'`).newLine()
+      writer.write(`import {${nameWrapFunction},useInstrumented_${nameSourceFunction}} from './instrumentation/${sourceFile.getBaseNameWithoutExtension()}'`).newLine()
     })
   }
 }
