@@ -1,4 +1,4 @@
-import * as path from "path";
+import {relativePathForCollectorMap} from "./shared/relative-path.util";
 
 class CollectorCreator {
 
@@ -9,7 +9,7 @@ class CollectorCreator {
       value: ${variableToCollect},
       line: ${line},
       function: '${functionName}',
-      file: '${this.relativePathForCollectorMap(filePath)}',
+      file: '${relativePathForCollectorMap(filePath)}',
       timestamp: Date.now(),
       other: ${other}
     })`
@@ -19,15 +19,12 @@ class CollectorCreator {
       value: ${variableToCollect},
       line: ${line},
       function: '${functionName}',
-      file: '${this.relativePathForCollectorMap(filePath)}',
+      file: '${relativePathForCollectorMap(filePath)}',
       timestamp: Date.now()
     })`
   }
 
-  relativePathForCollectorMap(pathAbs: string) {
-    let relPath = path.relative(path.resolve("."), pathAbs).toString()
-    return relPath.replace(/\\/g, '/')
-  }
+  
 }
 
 export const collectorCreator = new CollectorCreator()
