@@ -1,5 +1,5 @@
 import path from "path";
-import {relativePathForCollectorMap} from "../../src/instrumenter/function-instrumenter";
+import {relativePathForCollectorMap} from "@butopen/notest-collector";
 
 test("test empty relative path", async () => {
   const p = relativePathForCollectorMap("")
