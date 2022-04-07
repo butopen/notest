@@ -2,9 +2,9 @@
   "name": "@butopen/notest-collector",
   "version": "1.0.0",
   "description": "",
-  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.esm.js",
   "types": "src/index.ts",
-  "main": "dist/index.js",
   "scripts": {
     "build": "node esbuild.cjs",
     "types": "tsc --emitDeclarationOnly --outDir dist",
