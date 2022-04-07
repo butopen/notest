@@ -1,5 +1,5 @@
 import {FunctionDeclaration, Project, SourceFile} from "ts-morph";
-import {collectorCreator} from "@butopen/notest-collector"
+import {relativePathForCollectorMap} from "@butopen/notest-collector"
 import {ImportInstrumenter} from "./instrumenter-utils/import-instrumenter";
 import {InstrumenterUtils} from "./instrumenter-utils/instrumenter.utils";
 
@@ -85,7 +85,7 @@ export class FunctionInstrumenter {
     })
     const sourceFilePath = sourceFunction.getSourceFile().getFilePath().slice(0, -3)
     sourceFunction.insertStatements(0, writer =>
-      writer.writeLine(`/* decorated by notest... just ignore -> */if( instrumentationRules.check( {path: '${collectorCreator.relativePathForCollectorMap(sourceFilePath)}', name: '${sourceFunction.getName()}'})){return ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
+      writer.writeLine(`/* decorated by notest... just ignore -> */if( instrumentationRules.check( {path: '${relativePathForCollectorMap(sourceFilePath)}', name: '${sourceFunction.getName()}'})){return ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
   }
 
   private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile) {
