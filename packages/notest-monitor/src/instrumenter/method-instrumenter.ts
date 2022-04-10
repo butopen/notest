@@ -80,7 +80,7 @@ export class MethodInstrumenter {
     const wrapFunction = instrumentFunction.addFunction({name: undefined})
 
     const sourceMethod = sourceFile.getClassOrThrow(className).getMethodOrThrow(methodName)
-    this.cleanOnInit(sourceFile, className, methodName)
+    this.cleanOnInit(sourceFile, className, methodName, wrapFile)
     return {sourceFile, sourceMethod, wrapFile, wrapFunction, instrumentFunction}
   }
 
@@ -89,7 +89,7 @@ export class MethodInstrumenter {
     sourceFile.addStatements(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceMethod.getName()}()){instrument_${sourceMethod.getName()}(${className})}`)
   }
 
-  private cleanOnInit(sourceFile: SourceFile, className: string, methodName: string) {
+  private cleanOnInit(sourceFile: SourceFile, className: string, methodName: string, wrapFile: SourceFile) {
     sourceFile.getStatements().forEach(stat => {
       if (stat.getText().includes(`{instrument_${methodName}(${className})}`)) {
         stat.remove()
@@ -107,5 +107,10 @@ export class MethodInstrumenter {
         }
       }
     })
+
+    const functionToDelete = wrapFile.getFunction(`useInsturmented_${methodName}`)
+    if (functionToDelete) {
+      functionToDelete.remove()
+    }
   }
 }
