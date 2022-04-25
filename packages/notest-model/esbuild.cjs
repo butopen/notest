@@ -1,5 +1,3 @@
-import esbuild from 'esbuild'
-
 const watch = process.argv.includes("-w")
 
 
@@ -8,8 +6,6 @@ const options = {
     bundle: true,
     minify: false,
     sourcemap: true,
-    platform: 'node',
-    external: ['ts-morph', 'chokidar', '@butopen/notest-collector'],
     format: 'esm',
     target: 'es2020',
     outfile: 'dist/index.js',
@@ -23,4 +19,4 @@ if (watch) {
     }
 }
 
-esbuild.build(options)
+require('esbuild').build(options)
