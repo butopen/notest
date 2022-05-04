@@ -4,7 +4,7 @@ import {collectorCreator} from "@butopen/notest-collector";
 
 export class VariableInstrumenter implements InstrumentStatementInterface {
 
-  addCollector(statement: Statement, wrapFunction: FunctionDeclaration) {
+  addCollector(statement: Statement, wrapFunction: FunctionDeclaration, functionName) {
     const variableStatement: VariableStatement = statement.asKindOrThrow(SyntaxKind.VariableStatement)
     variableStatement.getDeclarations().forEach(declaration => {
         if (declaration.getInitializer()) {
@@ -15,7 +15,7 @@ export class VariableInstrumenter implements InstrumentStatementInterface {
                 collectorCreator.addInfo(
                   declaration.getName(),
                   "variable",
-                  wrapFunction.getName()!,
+                  functionName,
                   wrapFunction.getSourceFile().getFilePath(),
                   variableStatement.getStartLineNumber())
               )

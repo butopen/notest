@@ -6,7 +6,7 @@ import {ReturnInstrumenter} from "./statements-instrumenters/return-instrumenter
 import {collectorCreator, relativePathForCollectorMap} from "@butopen/notest-collector";
 
 export class InstrumenterUtils {
-  setParametersCollectors(sourceFunc: FunctionDeclaration | MethodDeclaration, wrapFunc: FunctionDeclaration) {
+  setParametersCollectors(sourceFunc: FunctionDeclaration | MethodDeclaration, wrapFunc: FunctionDeclaration, functionName: string) {
     const parameters: { name: string, type: string }[] = []
 
     sourceFunc.getParameters().forEach(param => {
@@ -18,7 +18,7 @@ export class InstrumenterUtils {
         collectorCreator.addInfo(
           param.getName(),
           'input',
-          wrapFunc.getName()!,
+          functionName,
           wrapFunc.getSourceFile().getBaseName(),
           wrapFunc.getStartLineNumber())
       )
@@ -27,7 +27,7 @@ export class InstrumenterUtils {
     wrapFunc.addParameters(parameters)
   }
 
-  wrapInTryCatch(wrapFunc: FunctionDeclaration) {
+  wrapInTryCatch(wrapFunc: FunctionDeclaration, functionName) {
     wrapFunc.getBody()!.replaceWithText(writer =>
       writer
         .write('{').newLine()
@@ -38,7 +38,7 @@ export class InstrumenterUtils {
           collectorCreator.addInfo(
             'error.message',
             'exception',
-            wrapFunc.getName()!,
+            functionName,
             wrapFunc.getSourceFile().getFilePath(),
             wrapFunc.getStartLineNumber())
         )
@@ -53,18 +53,18 @@ export class InstrumenterUtils {
     checkFunction.addStatements(`return instrumentationRules.check( {path: '${relativePathForCollectorMap(sourceFilePath)}', name: '${sourceFunction.getName()}'})`)
   }
 
-  instrumentBody(wrapFunction: FunctionDeclaration) {
+  instrumentBody(wrapFunction: FunctionDeclaration, functionName: string) {
     wrapFunction.getChildren().forEach(
-      child => this.instrumentStatementRec(wrapFunction, child)
+      child => this.instrumentStatementRec(wrapFunction, child, functionName)
     )
   }
 
-  instrumentStatementRec(wrapFunction: FunctionDeclaration, node: Node) {
+  instrumentStatementRec(wrapFunction: FunctionDeclaration, node: Node, functionName: string) {
     node.getChildren().forEach(
-      childStatement => this.instrumentStatementRec(wrapFunction, childStatement))
+      childStatement => this.instrumentStatementRec(wrapFunction, childStatement, functionName))
     if (this.toBeInstrumented(node)) {
       const instrumenter: InstrumentStatementInterface = this.setKind(node)
-      instrumenter.addCollector(node, wrapFunction)
+      instrumenter.addCollector(node, wrapFunction, functionName)
     }
   }
 

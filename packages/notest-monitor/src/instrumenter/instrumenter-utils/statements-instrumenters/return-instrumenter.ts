@@ -4,7 +4,7 @@ import {collectorCreator} from "@butopen/notest-collector";
 
 export class ReturnInstrumenter implements InstrumentStatementInterface {
 
-  addCollector(statement: Statement, wrapFunction: FunctionDeclaration) {
+  addCollector(statement: Statement, wrapFunction: FunctionDeclaration, functionName) {
     const returnStatement: ReturnStatement = statement.asKindOrThrow(SyntaxKind.ReturnStatement)
     const output = returnStatement.getExpressionOrThrow().getText()
     returnStatement.replaceWithText(writer =>
@@ -14,7 +14,7 @@ export class ReturnInstrumenter implements InstrumentStatementInterface {
           collectorCreator.addInfo(
             'output',
             "output",
-            wrapFunction.getName()!,
+            functionName,
             wrapFunction.getSourceFile().getFilePath(),
             returnStatement.getStartLineNumber()))
         .writeLine(`return output`)
