@@ -36,7 +36,7 @@ export class InstrumentedFunctionService {
       params.push(d.type, d.value, d.line, d.function, d.file, d.timestamp, d.other, new Date())
       return `(DEFAULT, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++})`
     }).join(",")
-    let result = (await this.db.query<{ infoid: number }>(`insert into blhit values ${values} RETURNING hitid`, params, {skipLogging: true}))
+    let result = (await this.db.query<{ infoid: number }>(`insert into instrumentedfunctionevent values ${values} RETURNING infoid`, params, {skipLogging: true}))
     return result
   }
 }
