@@ -5,7 +5,8 @@ const options = {
     entryPoints: ['src/index.ts'],
     bundle: true,
     minify: false,
-    sourcemap: true
+    sourcemap: true,
+    external: ['node-fetch'],
 }
 if (watch) {
     options.watch = {
@@ -17,12 +18,16 @@ if (watch) {
 }
 
 const esbuild = require('esbuild')
-    esbuild.build({...options, 
-        platform: 'node',
+esbuild.build({
+    ...options,
+    platform: 'node',
     format: 'esm',
     target: 'es2020',
-    outfile: 'dist/index.esm.js'});
-    esbuild.build({...options, 
-        platform: 'node',
+    outfile: 'dist/index.esm.js'
+});
+esbuild.build({
+    ...options,
+    platform: 'node',
     format: 'cjs',
-    outfile: 'dist/index.js'});
+    outfile: 'dist/index.js'
+});
