@@ -97,13 +97,14 @@ export class MethodInstrumenter {
     })
     sourceFile.getImportDeclarations().forEach(imp => {
       if (imp.getImportClause()) {
-        if (imp.getImportClause()!.getText().includes(`instrument_${methodName}`)) {
-          imp.getImportClause()!.getNamedImports().find(name => name.getText() == `instrument_${methodName}`)?.remove()
+        if (imp.getImportClause()!.getText().includes(`instrument_${methodName}`) || imp.getImportClause()!.getText().includes(`useInstrumented_${methodName}`)) {
+          imp.getImportClause()!.getNamedImports().forEach(name => {
+            if (name.getText() == `instrument_${methodName}` || name.getText() == `useInstrumented_${methodName}`)
+              name.remove()
+          })
           if (!imp.getImportClause()) {
             imp.remove()
           }
-        } else if (imp.getFullText().includes(`useInstrumented_${methodName}`)) {
-          imp.remove()
         }
       }
     })
