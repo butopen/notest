@@ -108,7 +108,7 @@ export class MethodInstrumenter {
       }
     })
 
-    const functionToDelete = wrapFile.getFunction(`useInsturmented_${methodName}`)
+    const functionToDelete = wrapFile.getFunction(`useInstrumented_${methodName}`)
     if (functionToDelete) {
       functionToDelete.remove()
     }

@@ -11,12 +11,12 @@ export class FunctionInstrumenter {
 
   instrumentFileFunctions(path: string) {
     const functions = this.project.getSourceFileOrThrow(path).getFunctions()
-    let functionsInsturmentedSourceFiles: SourceFile[] = []
+    let functionsInstrumentedSourceFiles: SourceFile[] = []
     functions.forEach(func => {
-      functionsInsturmentedSourceFiles.push(this.instrument(path, func.getNameOrThrow()))
+      functionsInstrumentedSourceFiles.push(this.instrument(path, func.getNameOrThrow()))
     })
     this.project.saveSync()
-    return functionsInsturmentedSourceFiles
+    return functionsInstrumentedSourceFiles
   }
 
   instrument(sourceFilePath: string, functionName: string) {
