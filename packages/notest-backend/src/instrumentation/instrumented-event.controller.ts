@@ -10,6 +10,7 @@ export class InstrumentedEventController {
   @Post('instrumented-function-event')
   async instrumentedFunctionEvent(@Body() events: InstrumentedFunctionEvent[]) {
     console.log('received packet:' + events.length)
+    events.forEach(event => console.log(event))
     await this.senderService.bulkSave(events)
     return {ok: true};
   }

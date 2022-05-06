@@ -48,6 +48,6 @@ export class EventsListener {
   private controlChanges(path: string) {
     this.functionInstrumenter.instrumentFileFunctions(path)
     this.methodInstrumenter.instrumentFileMethods(path)
-    this.stopListen()
+    this.stopListen().then(r => console.log("instrumentation complete, listener stopped"))
   }
 }
