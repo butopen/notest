@@ -1,10 +1,10 @@
-import {FunctionDeclaration, ReturnStatement, Statement, SyntaxKind} from "ts-morph"
+import {ReturnStatement, Statement, SyntaxKind} from "ts-morph"
 import {InstrumentStatementInterface} from "./instrument-statement.interface";
 import {collectorCreator} from "@butopen/notest-collector";
 
 export class ReturnInstrumenter implements InstrumentStatementInterface {
 
-  addCollector(statement: Statement, wrapFunction: FunctionDeclaration, functionName) {
+  addCollector(statement: Statement, filePath: string, functionName) {
     const returnStatement: ReturnStatement = statement.asKindOrThrow(SyntaxKind.ReturnStatement)
     const output = returnStatement.getExpressionOrThrow().getText()
     returnStatement.replaceWithText(writer =>
@@ -15,7 +15,7 @@ export class ReturnInstrumenter implements InstrumentStatementInterface {
             'output',
             "output",
             functionName,
-            wrapFunction.getSourceFile().getFilePath(),
+            filePath,
             returnStatement.getStartLineNumber()))
         .writeLine(`return output`)
     )

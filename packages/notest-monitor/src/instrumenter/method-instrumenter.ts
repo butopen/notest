@@ -38,13 +38,13 @@ export class MethodInstrumenter {
       throw new Error("Function hasn't body")
     }
 
-    instrumenterUtils.instrumentBody(wrapFunction, methodName)
+    instrumenterUtils.instrumentBody(wrapFunction, sourceFilePath, methodName)
 
     // Instrument input parameters
     wrapFunction.addParameters([{name: 'this'}])
     instrumenterUtils.setParametersCollectors(sourceMethod, wrapFunction, methodName)
 
-    instrumenterUtils.wrapInTryCatch(wrapFunction, methodName)
+    instrumenterUtils.wrapInTryCatch(wrapFunction, sourceFilePath, methodName)
     instrumenterUtils.addCheckFunctionInInstrumentedFile(wrapFile, sourceMethod)
     this.addCallInSourceFile(sourceMethod, className, sourceFile)
     const nameFunctionToImport = 'instrument_' + sourceMethod.getName()

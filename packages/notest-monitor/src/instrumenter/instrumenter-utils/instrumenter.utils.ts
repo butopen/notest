@@ -19,7 +19,7 @@ export class InstrumenterUtils {
           param.getName(),
           'input',
           functionName,
-          wrapFunc.getSourceFile().getBaseName(),
+          sourceFunc.getSourceFile().getFilePath(),
           wrapFunc.getStartLineNumber())
       )
     })
@@ -27,7 +27,7 @@ export class InstrumenterUtils {
     wrapFunc.addParameters(parameters)
   }
 
-  wrapInTryCatch(wrapFunc: FunctionDeclaration, functionName) {
+  wrapInTryCatch(wrapFunc: FunctionDeclaration, filePath: string, functionName: string) {
     wrapFunc.getBody()!.replaceWithText(writer =>
       writer
         .write('{').newLine()
@@ -39,7 +39,7 @@ export class InstrumenterUtils {
             'error.message',
             'exception',
             functionName,
-            wrapFunc.getSourceFile().getFilePath(),
+            filePath,
             wrapFunc.getStartLineNumber())
         )
         .write('}}')
@@ -53,18 +53,18 @@ export class InstrumenterUtils {
     checkFunction.addStatements(`return instrumentationRules.check( {path: '${relativePathForCollectorMap(sourceFilePath)}', name: '${sourceFunction.getName()}'})`)
   }
 
-  instrumentBody(wrapFunction: FunctionDeclaration, functionName: string) {
+  instrumentBody(wrapFunction: FunctionDeclaration, filePath: string, functionName: string) {
     wrapFunction.getChildren().forEach(
-      child => this.instrumentStatementRec(wrapFunction, child, functionName)
+      child => this.instrumentStatementRec(child, filePath, functionName)
     )
   }
 
-  instrumentStatementRec(wrapFunction: FunctionDeclaration, node: Node, functionName: string) {
+  instrumentStatementRec(node: Node, filepath: string, functionName: string) {
     node.getChildren().forEach(
-      childStatement => this.instrumentStatementRec(wrapFunction, childStatement, functionName))
+      childStatement => this.instrumentStatementRec(childStatement, filepath, functionName))
     if (this.toBeInstrumented(node)) {
       const instrumenter: InstrumentStatementInterface = this.setKind(node)
-      instrumenter.addCollector(node, wrapFunction, functionName)
+      instrumenter.addCollector(node, filepath, functionName)
     }
   }
 

@@ -1,5 +1,5 @@
-import {FunctionDeclaration, Node} from "ts-morph";
+import {Node} from "ts-morph";
 
 export interface InstrumentStatementInterface {
-  addCollector(statement: Node, wrapFunction: FunctionDeclaration, functionName): void
+  addCollector(statement: Node, filepath: string, functionName: string): void
 }

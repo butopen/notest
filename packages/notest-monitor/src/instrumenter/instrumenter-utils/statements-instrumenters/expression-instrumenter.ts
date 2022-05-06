@@ -1,10 +1,10 @@
-import {Expression, ExpressionStatement, FunctionDeclaration, SyntaxKind} from "ts-morph"
+import {Expression, ExpressionStatement, SyntaxKind} from "ts-morph"
 import {InstrumentStatementInterface} from "./instrument-statement.interface";
 import {collectorCreator} from "@butopen/notest-collector";
 
 export class ExpressionInstrumenter implements InstrumentStatementInterface {
 
-  addCollector(statement: Expression, wrapFunction: FunctionDeclaration, functionName) {
+  addCollector(statement: Expression, filePath: string, functionName) {
     const expressionStatement: ExpressionStatement = statement.asKindOrThrow(SyntaxKind.ExpressionStatement)
     statement.replaceWithText(writer => {
         writer.writeLine(statement.getFullText()).newLine()
@@ -16,7 +16,7 @@ export class ExpressionInstrumenter implements InstrumentStatementInterface {
                 variableToCollect,
                 "variable",
                 functionName,
-                wrapFunction.getSourceFile().getFilePath(),
+                filePath,
                 expressionStatement.getStartLineNumber())
             )
         }
