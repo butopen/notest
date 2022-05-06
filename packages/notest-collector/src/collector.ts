@@ -10,11 +10,13 @@ class NoTestCollector {
   private static eventsToSend: InstrumentedFunctionEvent[];
 
   constructor() {
-    setInterval(() => NoTestCollector.send(NoTestCollector.eventsToSend), 5000)
+    setInterval(() => NoTestCollector.send(), 5000)
+    NoTestCollector.eventsToSend = []
   }
 
-  private static async send(events: InstrumentedFunctionEvent[]) {
-    if (events) {
+  private static async send() {
+    if (NoTestCollector.eventsToSend.length) {
+      let data = NoTestCollector.eventsToSend.splice(0)
       try {
         console.log("sending events to db")
         const rawResponse = await fetch("http://localhost:3000/api/instrumented-function-event", {
@@ -23,11 +25,15 @@ class NoTestCollector {
             "Accept": "application/json",
             "Content-Type": "application/json"
           },
-          body: stringify(events)
+          body: JSON.stringify(data)
         });
-        const content = await rawResponse.json();
-        console.log(content)
+        const response = await rawResponse.json();
+        console.log(response)
+        if (!rawResponse.ok) {
+          data.forEach(event => NoTestCollector.eventsToSend.push(event))
+        }
       } catch (e2) {
+        data.forEach(event => NoTestCollector.eventsToSend.push(event))
         console.log("e : ", e2);
         throw new Error("Could not send events");
       }
@@ -39,11 +45,14 @@ class NoTestCollector {
    * @param event
    */
   async collect(event: InstrumentedFunctionEvent) {
-    if (!NoTestCollector.eventsToSend) {
-      NoTestCollector.eventsToSend = []
+    if (this.toSend(event)) {
+      NoTestCollector.eventsToSend.push(event)
+      console.log("collecting: ", event)
     }
-    NoTestCollector.eventsToSend.push(event)
-    console.log("collecting: ", event)
+  }
+
+  private toSend(event: InstrumentedFunctionEvent) {
+    return typeof event.value !== 'object'
   }
 }
 
