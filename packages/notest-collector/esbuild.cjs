@@ -6,7 +6,7 @@ const options = {
     bundle: true,
     minify: false,
     sourcemap: true,
-    external: ['node-fetch'],
+    external: ['node-fetch', 'flatted'],
 }
 if (watch) {
     options.watch = {
