@@ -14,7 +14,7 @@ export class ExpressionInstrumenter implements InstrumentStatementInterface {
             .write(
               collectorCreator.addInfo(
                 variableToCollect,
-                "variable",
+                "expression",
                 functionName,
                 filePath,
                 expressionStatement.getStartLineNumber())
