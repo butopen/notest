@@ -56,7 +56,7 @@ export class FunctionInstrumenter {
     const sourceFile = this.project.getSourceFileOrThrow(sourceFilePath)
     const sourceFunction = sourceFile.getFunctionOrThrow(functionName)
 
-    this.cleanOnInit(sourceFunction, sourceFile)
+    this.cleanOnInit(sourceFunction, sourceFile, functionName)
 
     let wrapFunctionName = functionName + 'Instrumented'
 
@@ -87,14 +87,21 @@ export class FunctionInstrumenter {
       writer.writeLine(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceFunction.getName()}()){return ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
   }
 
-  private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile) {
+  private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile, functionName) {
     if (sourceFunction.getStatements()[0]!.getText().includes('instrumentationRules')) {
       sourceFunction.removeStatement(0)
     }
     sourceFile.getImportDeclarations().forEach(imp => {
-      if (imp.getFullText().includes(`useInstrumented_${sourceFunction.getName()}`)
-        || imp.getFullText().includes(`instrumentation/${sourceFile.getBaseNameWithoutExtension()}`)) {
-        imp.remove()
+      if (imp.getImportClause()) {
+        if (imp.getImportClause()!.getText().includes(`${functionName}Instrumented`) || imp.getImportClause()!.getText().includes(`useInstrumented_${functionName}`)) {
+          imp.getImportClause()!.getNamedImports().forEach(name => {
+            if (name.getText() == `${functionName}Instrumented` || name.getText() == `useInstrumented_${functionName}`)
+              name.remove()
+          })
+          if (!imp.getImportClause()) {
+            imp.remove()
+          }
+        }
       }
     })
   }
