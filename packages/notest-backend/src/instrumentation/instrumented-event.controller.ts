@@ -1,14 +1,14 @@
 import {Body, Controller, Post} from '@nestjs/common';
-import {InstrumentedFunctionService} from './instrumented-function.service';
-import {InstrumentedFunctionEvent} from "@butopen/notest-model";
+import {InstrumentedService} from './instrumented.service';
+import {InstrumentedEvent} from "@butopen/notest-model";
 
 @Controller('api')
 export class InstrumentedEventController {
-  constructor(private readonly senderService: InstrumentedFunctionService) {
+  constructor(private readonly senderService: InstrumentedService) {
   }
 
-  @Post('instrumented-function-event')
-  async instrumentedFunctionEvent(@Body() events: InstrumentedFunctionEvent[]) {
+  @Post('instrumented-event')
+  async instrumentedEvent(@Body() events: InstrumentedEvent[]) {
     console.log('received packet:' + events.length)
     events.forEach(event => console.log(event))
     await this.senderService.bulkSave(events)

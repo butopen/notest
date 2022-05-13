@@ -1,4 +1,4 @@
-import {InstrumentedFunctionEvent} from "@butopen/notest-model"
+import {InstrumentedEvent} from "@butopen/notest-model"
 import {RequestInfo, RequestInit} from 'node-fetch';
 import {stringify} from 'flatted';
 
@@ -7,7 +7,7 @@ const fetch = (url: RequestInfo, init?: RequestInit) =>
 
 
 class NoTestCollector {
-  private static eventsToSend: InstrumentedFunctionEvent[];
+  private static eventsToSend: InstrumentedEvent[];
 
   constructor() {
     setInterval(() => NoTestCollector.send(), 5000)
@@ -19,7 +19,7 @@ class NoTestCollector {
       let data = NoTestCollector.eventsToSend.splice(0)
       try {
         console.log("sending events to db")
-        const rawResponse = await fetch("http://localhost:3000/api/instrumented-function-event", {
+        const rawResponse = await fetch("http://localhost:3000/api/instrumented-event", {
           method: "POST",
           headers: {
             "Accept": "application/json",
@@ -44,14 +44,14 @@ class NoTestCollector {
    * .collect({type: "input"}, {...})
    * @param event
    */
-  async collect(event: InstrumentedFunctionEvent) {
+  async collect(event: InstrumentedEvent) {
     if (this.toSend(event)) {
       NoTestCollector.eventsToSend.push(event)
       console.log("collecting: ", event)
     }
   }
 
-  private toSend(event: InstrumentedFunctionEvent) {
+  private toSend(event: InstrumentedEvent) {
     return typeof event.value !== 'object'
   }
 }

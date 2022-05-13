@@ -1,5 +1,5 @@
 import {DBConfig, PostgresDbService} from "../../dist/postgres/postgres-db.service";
-import {InstrumentedFunctionEvent} from "@butopen/notest-model";
+import {InstrumentedEvent} from "@butopen/notest-model";
 import {InstrumentedFunctionService} from "../../dist/instrumentation/instrumented-function.service";
 
 describe("Test add event to DB", () => {
@@ -14,9 +14,10 @@ describe("Test add event to DB", () => {
   const instFunction = new InstrumentedFunctionService(new PostgresDbService(testConfig))
 
   test("add two events", () => {
-    const eventsToAdd: InstrumentedFunctionEvent[] = []
+    const eventsToAdd: InstrumentedEvent[] = []
 
     eventsToAdd.push({
+      script: "method",
       file: "file",
       function: "function",
       line: 0,
@@ -26,6 +27,7 @@ describe("Test add event to DB", () => {
     })
 
     eventsToAdd.push({
+      script: "method",
       file: "file",
       function: "function2",
       line: 1,

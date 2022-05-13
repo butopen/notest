@@ -1,9 +1,9 @@
 import {Injectable} from '@nestjs/common';
-import {InstrumentedFunctionEvent} from "@butopen/notest-model";
+import {InstrumentedEvent} from "@butopen/notest-model";
 import {DB} from "../postgres/postgres-db.service";
 
 @Injectable()
-export class InstrumentedFunctionService {
+export class InstrumentedService {
   private tableName = 'instrumentedfunctionevent'
 
   constructor(private db: DB) {
@@ -30,7 +30,7 @@ export class InstrumentedFunctionService {
         `)
   }
 
-  async bulkSave(data: InstrumentedFunctionEvent[]): Promise<{ infoid: number }[]> {
+  async bulkSave(data: InstrumentedEvent[]): Promise<{ infoid: number }[]> {
     let index = 1
     let params: any[] = []
     let values = data.map(d => {

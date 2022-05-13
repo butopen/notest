@@ -1,4 +1,4 @@
-export interface InstrumentedFunctionEvent {
+export interface InstrumentedEvent {
   script: "method" | "function",
   type: "input" | "output" | "variable" | "expression" | "exception",
   value: any,
