@@ -20,7 +20,7 @@ export class FunctionInstrumenter {
   }
 
   instrument(sourceFilePath: string, functionName: string) {
-    const instrumenterUtils = new InstrumenterUtils()
+    const instrumenterUtils = new InstrumenterUtils("function")
     console.log("instrumenting " + functionName)
     const {sourceFile, sourceFunction, wrapFile, wrapFunction} = this.initialize(sourceFilePath, functionName)
 

@@ -6,7 +6,7 @@ import {ReturnInstrumenter} from "./statements-instrumenters/return-instrumenter
 import {collectorCreator, relativePathForCollectorMap} from "@butopen/notest-collector";
 
 export class InstrumenterUtils {
-  private type: string;
+  private readonly type: string;
 
   constructor(type: string) {
     this.type = type;
@@ -22,6 +22,7 @@ export class InstrumenterUtils {
       })
       wrapScript.insertStatements(0,
         collectorCreator.addInfo(
+          this.type,
           param.getName(),
           'input',
           scriptName,
@@ -42,6 +43,7 @@ export class InstrumenterUtils {
         .write('} catch (error: any) {').newLine()
         .write(
           collectorCreator.addInfo(
+            this.type,
             'error.message',
             'exception',
             scriptName,
@@ -70,7 +72,7 @@ export class InstrumenterUtils {
       childStatement => this.instrumentStatementRec(childStatement, filepath, scriptName))
     if (this.toBeInstrumented(node)) {
       const instrumenter: InstrumentStatementInterface = this.setKind(node)
-      instrumenter.addCollector(node, filepath, scriptName)
+      instrumenter.addCollector(this.type, node, filepath, scriptName)
     }
   }
 

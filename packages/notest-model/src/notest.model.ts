@@ -1,4 +1,5 @@
 export interface InstrumentedFunctionEvent {
+  script: "method" | "function",
   type: "input" | "output" | "variable" | "expression" | "exception",
   value: any,
   line: number,

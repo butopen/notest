@@ -2,9 +2,10 @@ import {relativePathForCollectorMap} from "./shared/relative-path.util";
 
 class CollectorCreator {
 
-  addInfo(variableToCollect: string, type: string, functionName: string, filePath: string, line: number, other?: any) {
+  addInfo(script: string, variableToCollect: string, type: string, functionName: string, filePath: string, line: number, other?: any) {
     if (other) {
       return `collector.collect({
+      script: ${script},
       type: '${type}',
       value: ${variableToCollect},
       line: ${line},
@@ -15,6 +16,7 @@ class CollectorCreator {
     })`
     }
     return `collector.collect({
+      script: ${script},
       type: '${type}',
       value: ${variableToCollect},
       line: ${line},
@@ -24,7 +26,7 @@ class CollectorCreator {
     })`
   }
 
-  
+
 }
 
 export const collectorCreator = new CollectorCreator()

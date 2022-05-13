@@ -4,7 +4,7 @@ import {collectorCreator} from "@butopen/notest-collector";
 
 export class ExpressionInstrumenter implements InstrumentStatementInterface {
 
-  addCollector(statement: Expression, filePath: string, functionName) {
+  addCollector(script: string, statement: Expression, filePath: string, functionName) {
     const expressionStatement: ExpressionStatement = statement.asKindOrThrow(SyntaxKind.ExpressionStatement)
     statement.replaceWithText(writer => {
         writer.writeLine(statement.getFullText()).newLine()
@@ -13,6 +13,7 @@ export class ExpressionInstrumenter implements InstrumentStatementInterface {
           writer.newLine()
             .write(
               collectorCreator.addInfo(
+                script,
                 variableToCollect,
                 "expression",
                 functionName,

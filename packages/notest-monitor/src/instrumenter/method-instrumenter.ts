@@ -17,7 +17,7 @@ export class MethodInstrumenter {
   }
 
   instrument(sourceFilePath: string, className: string, methodName: string) {
-    const instrumenterUtils = new InstrumenterUtils()
+    const instrumenterUtils = new InstrumenterUtils("method")
     console.log("instrumenting " + methodName)
     const {
       sourceFile,
