@@ -4,7 +4,7 @@ import {DB} from "../postgres/postgres-db.service";
 
 @Injectable()
 export class InstrumentedService {
-  private tableName = 'instrumentedfunctionevent'
+  private tableName = 'instrumentedevent'
 
   constructor(private db: DB) {
   }
@@ -37,7 +37,7 @@ export class InstrumentedService {
       params.push(d.script, d.type, d.value, d.line, d.function, d.file, d.timestamp, d.other, new Date())
       return `(DEFAULT, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++}, $${index++})`
     }).join(",")
-    let result = (await this.db.query<{ infoid: number }>(`insert into instrumentedfunctionevent values ${values} RETURNING infoid`, params, {skipLogging: true}))
+    let result = (await this.db.query<{ infoid: number }>(`insert into instrumentedevent values ${values} RETURNING infoid`, params, {skipLogging: true}))
     return result
   }
 }
