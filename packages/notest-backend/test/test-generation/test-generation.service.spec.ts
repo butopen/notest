@@ -22,7 +22,7 @@ describe("Test generation", () => {
       line: 0,
       timestamp: Date.now(),
       type: "input",
-      value: true
+      value: {test: true}
     })
 
     testRoutine.push({

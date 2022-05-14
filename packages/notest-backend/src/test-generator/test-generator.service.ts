@@ -2,6 +2,9 @@ import {Injectable} from '@nestjs/common';
 import {DB} from "../postgres/postgres-db.service";
 import {InstrumentedEvent} from "@butopen/notest-model";
 import {Project} from "ts-morph";
+import {giveParamsAndExpected, makeTitle} from "./test-generator.utils";
+
+const objectHash = require("object-hash");
 
 @Injectable()
 export class TestGeneratorService {
@@ -57,38 +60,20 @@ export class TestGeneratorService {
 
     const inputs = routine.filter(element => element.type == 'input')
     const output = routine.filter(element => element.type == 'output')[0]
-    const testTitle = inputs.map(elem => elem.value).join('-')
+    const testTitle = makeTitle(inputs)
     const importStatement = `import {${functionName}} from '${routine[0].file.slice(0, -3)}'`
-    testFile.insertStatements(0, writer => {
-      writer.write(importStatement)
-    })
-    let i = 0;
-    testFile.addStatements(writer => {
-      writer.write(
-        `test("${testTitle}", async () => {\n`)
+    let {params, returnValue} = giveParamsAndExpected(inputs, output)
 
-      let params = "";
-      inputs.forEach(input => {
-        if (typeof input.value == "string") {
-          writer.write(` const input${++i} = "${input.value}"\n`)
-        } else {
-          writer.write(` const input${++i} = ${input.value}\n`)
-        }
-        params = params + `,input${i}`
-      })
+    let testFunction = `test("${testTitle}", async () => {\n`
+    testFunction += ` expect(${functionName}(${params.substring(1)})).toBe(${returnValue})\n})`
 
-      let returnValue;
-      if (typeof output.value == "string") {
-        returnValue = '"' + output.value + '"';
-      } else {
-        returnValue = output.value;
-      }
-      writer.write(` expect(${functionName}(${params.substring(1)})).toBe(${returnValue})\n})`)
-    })
-
-    console.log("created test for " + functionName)
+    testFile.insertStatements(0, importStatement)
+    testFile.addStatements(testFunction)
     testFile.organizeImports()
     project.saveSync()
+
+    console.log("created test for " + functionName)
+
     return testFile.getText()
   }
 
