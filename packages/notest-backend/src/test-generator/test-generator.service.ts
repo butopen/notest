@@ -2,7 +2,6 @@ import {Injectable} from '@nestjs/common';
 import {DB} from "../postgres/postgres-db.service";
 import {InstrumentedEvent} from "@butopen/notest-model";
 import {Project} from "ts-morph";
-import hash from "object-hash"
 
 @Injectable()
 export class TestGeneratorService {
@@ -50,38 +49,47 @@ export class TestGeneratorService {
     });
 
     const functionName = routine[0].function;
-    const pathFileArray = routine[0].file.replace('\\', '/').split('/').pop()
-    project.addSourceFileAtPathIfExists(pathFileArray.concat('/'))
-    let testFile = project.getSourceFile(pathFileArray.concat('/') + '/test/test-' + functionName)
+    const pathFile = routine[0].file.replace('\\', '/').split('/').slice(0, -1).join('/')
+    let testFile = project.getSourceFile(pathFile + '/test/test-' + functionName + ".ts")
     if (!testFile) {
-      testFile = project.createSourceFile(pathFileArray.concat('/') + '/test/test-' + functionName)
+      testFile = project.createSourceFile(pathFile + '/test/test-' + functionName + '.ts')
     }
 
-    const input = routine.filter(element => element.type == 'input')
+    const inputs = routine.filter(element => element.type == 'input')
     const output = routine.filter(element => element.type == 'output')[0]
-    const testTitle = hash(
-      input
-        .map(elem => elem.value)
-        .reduce((elem1, elem2) => elem1.value.toString() + elem2.value.toString())
-    )
-
+    const testTitle = inputs.map(elem => elem.value).join('-')
+    const importStatement = `import {${functionName}} from '${routine[0].file.slice(0, -3)}'`
     testFile.insertStatements(0, writer => {
-      writer.write(`import {${functionName}} from '${routine[0].file}'`)
+      writer.write(importStatement)
     })
-
-    const params = input
-      .map(elem => elem.value)
-      .reduce((elem1, elem2) => elem1.value.toString() + ',' + elem2.value.toString());
-
+    let i = 0;
     testFile.addStatements(writer => {
       writer.write(
-        `test("${testTitle}", async () => {
-                expect(${functionName}(${params})).toBe(${output.value})
-              })`
-      )
+        `test("${testTitle}", async () => {\n`)
+
+      let params = "";
+      inputs.forEach(input => {
+        if (typeof input.value == "string") {
+          writer.write(` const input${++i} = "${input.value}"\n`)
+        } else {
+          writer.write(` const input${++i} = ${input.value}\n`)
+        }
+        params = params + `,input${i}`
+      })
+
+      let returnValue;
+      if (typeof output.value == "string") {
+        returnValue = '"' + output.value + '"';
+      } else {
+        returnValue = output.value;
+      }
+      writer.write(` expect(${functionName}(${params.substring(1)})).toBe(${returnValue})\n})`)
     })
 
     console.log("created test for " + functionName)
+    testFile.organizeImports()
+    project.saveSync()
+    return testFile.getText()
   }
 
   generateMethodTest(routine: InstrumentedEvent[]) {

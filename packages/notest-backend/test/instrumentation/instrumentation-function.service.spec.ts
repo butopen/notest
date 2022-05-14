@@ -1,6 +1,6 @@
-import {DBConfig, PostgresDbService} from "../../dist/postgres/postgres-db.service";
 import {InstrumentedEvent} from "@butopen/notest-model";
-import {InstrumentedFunctionService} from "../../dist/instrumentation/instrumented-function.service";
+import {InstrumentedService} from "../../src/instrumentation/instrumented.service";
+import {DBConfig, PostgresDbService} from "../../src/postgres/postgres-db.service";
 
 describe("Test add event to DB", () => {
   const testConfig: DBConfig = {
@@ -11,7 +11,7 @@ describe("Test add event to DB", () => {
     "port": 5432
   }
 
-  const instFunction = new InstrumentedFunctionService(new PostgresDbService(testConfig))
+  const instFunction = new InstrumentedService(new PostgresDbService(testConfig))
 
   test("add two events", () => {
     const eventsToAdd: InstrumentedEvent[] = []
