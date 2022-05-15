@@ -4,20 +4,18 @@ import {InstrumentedEvent} from "@butopen/notest-model";
 import {Project} from "ts-morph";
 import {giveParamsAndExpected, makeTitle} from "./test-generator.utils";
 
-const objectHash = require("object-hash");
-
 @Injectable()
 export class TestGeneratorService {
-  constructor(private readonly db: DB) {
+  constructor(private db: DB) {
   }
 
   async getInfoFromDb(instruction) {
     const response = await this.db.query(`select * from instrumentedEvent 
-                      where scripttype == ${instruction.scriptType} 
-                            and filepath == ${instruction.filePath} 
-                            and functionname == ${instruction.functionName}
+                      where scripttype = '${instruction.scriptType}'
+                            and filepath = '${instruction.filePath}'
+                            and functionname = '${instruction.functionName}'
                       order by fired,line`);
-
+    console.log(response)
     const variables: InstrumentedEvent[] = response.map(elem => {
       return {
         script: elem['scripttype'],
@@ -45,11 +43,7 @@ export class TestGeneratorService {
     }
   }
 
-  async generateFunctionTest(routine: InstrumentedEvent[]) {
-
-    const project = new Project({
-      tsConfigFilePath: "tsconfig.json",
-    });
+  async generateFunctionTest(routine: InstrumentedEvent[], project: Project) {
 
     const functionName = routine[0].function;
     const pathFile = routine[0].file.replace('\\', '/').split('/').slice(0, -1).join('/')
@@ -65,7 +59,7 @@ export class TestGeneratorService {
     let {params, returnValue} = giveParamsAndExpected(inputs, output)
 
     let testFunction = `test("${testTitle}", async () => {\n`
-    testFunction += ` expect(${functionName}(${params.substring(1)})).toBe(${returnValue})\n})`
+    testFunction += ` expect(${functionName}(${params})).toBe(${returnValue})\n})`
 
     testFile.insertStatements(0, importStatement)
     testFile.addStatements(testFunction)
@@ -77,7 +71,7 @@ export class TestGeneratorService {
     return testFile.getText()
   }
 
-  generateMethodTest(routine: InstrumentedEvent[]) {
+  generateMethodTest(routine: InstrumentedEvent[], project: Project) {
 
   }
 }
