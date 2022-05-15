@@ -1,4 +1,4 @@
-import {InstrumentedEvent} from "@butopen/notest-model";
+import {InstrumentedEvent} from "@butopen/notest-model/dist";
 import {InstrumentedService} from "../../src/instrumentation/instrumented.service";
 import {DBConfig, PostgresDbService} from "../../src/postgres/postgres-db.service";
 
@@ -16,7 +16,7 @@ describe("Test add event to DB and geneartion test", () => {
   const db: PostgresDbService = new PostgresDbService(testConfig)
   const instFunction = new InstrumentedService(db)
 
-  test("trigger test generation", async () => {
+  test("add events and trigger test generation", async () => {
     await instFunction.generateTable();
     const eventsToAdd: InstrumentedEvent[] = []
     for (let i = 0; i <= 2; i++) {

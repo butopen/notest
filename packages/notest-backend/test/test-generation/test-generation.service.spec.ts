@@ -1,6 +1,7 @@
 import {InstrumentedEvent} from "@butopen/notest-model/dist";
 import {TestGeneratorService} from "../../src/test-generator/test-generator.service";
 import {DBConfig, PostgresDbService} from "../../src/postgres/postgres-db.service";
+import {Project} from "ts-morph";
 
 describe("Test generation", () => {
   const testConfig: DBConfig = {
@@ -55,6 +56,9 @@ describe("Test generation", () => {
       value: "output"
     })
 
-    console.log(await testGenerator.generateFunctionTest(testRoutine))
+    console.log(await testGenerator.generateFunctionTest(testRoutine,
+      new Project({
+        tsConfigFilePath: "tsconfig.json",
+      })))
   })
 })
