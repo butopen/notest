@@ -5,7 +5,7 @@ import {DBConfig, PostgresDbService} from "../../src/postgres/postgres-db.servic
 const fetch = (url: RequestInfo, init?: RequestInit) =>
   import('node-fetch').then(({default: fetch}) => fetch(url, init));
 
-describe("Test add event to DB and geneartion test", () => {
+describe("Test add event to DB and generation test", () => {
   const testConfig: DBConfig = {
     "host": "localhost",
     "user": "postgres",
@@ -22,22 +22,22 @@ describe("Test add event to DB and geneartion test", () => {
     for (let i = 0; i <= 2; i++) {
       eventsToAdd.push({
         script: "function",
-        file: "test/fileTest.ts",
+        file: "src/fileTest.ts",
         function: "functionTest",
         line: 0,
         timestamp: Date.now() + i,
         type: "input",
-        value: i
+        value: {content: i}
       })
 
       eventsToAdd.push({
         script: "function",
-        file: "test/fileTest.ts",
+        file: "src/fileTest.ts",
         function: "functionTest",
         line: 1,
         timestamp: Date.now() + i,
         type: "output",
-        value: i + 1
+        value: {content: i + 1}
       })
     }
     let ids = []

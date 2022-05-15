@@ -7,7 +7,7 @@ class CollectorCreator {
       return `collector.collect({
       script: ${script},
       type: '${type}',
-      value: ${variableToCollect},
+      value: {content: ${variableToCollect}},
       line: ${line},
       function: '${functionName}',
       file: '${relativePathForCollectorMap(filePath)}',

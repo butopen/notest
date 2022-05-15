@@ -19,7 +19,7 @@ export class InstrumentedService {
                 infoid BIGSERIAL PRIMARY KEY,
                 scripttype text CHECK (scripttype IN ('function' , 'method')),
                 nttype text CHECK (nttype IN ('input' , 'output' , 'variable' , 'expression' , 'exception')),
-                value text,
+                value JSONB,
                 line integer,
                 functionname text,
                 filepath text,
