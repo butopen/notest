@@ -9,10 +9,10 @@ class CollectorCreator {
       type: '${type}',
       value: {content: ${variableToCollect}},
       line: ${line},
-      function: '${functionName}',
+      function: "'" + this.constructor.name + "." + ${functionName} + "'",
       file: '${relativePathForCollectorMap(filePath)}',
       timestamp: Date.now(),
-      other: {className: this.constructor.name, other: ${other}}
+      other: ${other}
     })`
     }
     return `collector.collect({
@@ -23,7 +23,7 @@ class CollectorCreator {
       function: '${functionName}',
       file: '${relativePathForCollectorMap(filePath)}',
       timestamp: Date.now(),
-      other: {other: ${other}}
+      other: ${other}
     })`
   }
 
