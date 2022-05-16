@@ -15,7 +15,7 @@ export class TestGeneratorController {
 
   @Post('generate-test')
   async testGenerator(@Body() scriptInfo) { //TODO define TestInstruction Model
-
+    console.log("instructions arrived: " + JSON.stringify(scriptInfo))
     let generationInstructions: { scriptType, scriptData: { routine: InstrumentedEvent[] }[] }
       = await this.testGeneratorService.getInfoFromDb(scriptInfo)
 

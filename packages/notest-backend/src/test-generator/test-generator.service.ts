@@ -9,7 +9,7 @@ export class TestGeneratorService {
   constructor(private db: DB) {
   }
 
-  async getInfoFromDb(instruction) {
+  async getInfoFromDb(instruction: { scriptType: string; filePath: string; functionName: string; }) {
     const response = await this.db.query(`select * from instrumentedEvent 
                       where scripttype = '${instruction.scriptType}'
                             and filepath = '${instruction.filePath}'
@@ -53,7 +53,7 @@ export class TestGeneratorService {
 
     const inputs = routine.filter(element => element.type == 'input')
     const output = routine.filter(element => element.type == 'output')[0]
-    const testTitle = makeTitle(inputs)
+    const testTitle = makeTitle(inputs, output)
     const importStatement = `import {${functionName}} from '${routine[0].file.slice(0, -3)}'`
     let {params, returnValue} = giveParamsAndExpected(inputs, output)
 
@@ -65,12 +65,36 @@ export class TestGeneratorService {
     testFile.organizeImports()
     project.saveSync()
 
-    console.log("created test for " + functionName)
+    console.log("created test for function: " + functionName)
 
     return testFile.getText()
   }
 
-  generateMethodTest(routine: InstrumentedEvent[], project: Project) {
+  async generateMethodTest(routine: InstrumentedEvent[], project: Project) {
+    const className = routine[0].function.split('.')[0]
+    const methodName = routine[0].function.split('.')[1]
+    const pathFile = routine[0].file.replace('\\', '/').split('/').slice(0, -1).join('/')
 
+    let testFile = project.getSourceFile(pathFile + '/test/test-' + className + "-" + methodName + ".ts")
+    if (!testFile) {
+      testFile = project.createSourceFile(pathFile + '/test/test-' + className + "-" + methodName + ".ts")
+    }
+
+    const inputs = routine.filter(element => element.type == 'input')
+    const output = routine.filter(element => element.type == 'output')[0]
+
+    const testTitle = makeTitle(inputs, output)
+    const importStatement = `import {${className}} from '${routine[0].file.slice(0, -3)}'`
+    let {params, returnValue} = giveParamsAndExpected(inputs, output)
+
+    let testFunction = `test("${testTitle}", async () => {\n`
+    testFunction += ` expect(new ${className}.${methodName}(${params})).toBe(${returnValue})\n})`
+
+    testFile.insertStatements(0, importStatement)
+    testFile.addStatements(testFunction)
+    testFile.organizeImports()
+    project.saveSync()
+
+    console.log("created test for method: " + className + "." + methodName)
   }
 }
