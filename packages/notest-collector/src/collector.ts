@@ -52,7 +52,7 @@ class NoTestCollector {
   }
 
   private toSend(event: InstrumentedEvent) {
-    return typeof event.value !== 'object'
+    return typeof event.value['content'] !== 'object'
   }
 }
 

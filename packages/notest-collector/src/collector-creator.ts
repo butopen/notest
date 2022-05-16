@@ -3,26 +3,27 @@ import {relativePathForCollectorMap} from "./shared/relative-path.util";
 class CollectorCreator {
 
   addInfo(script: string, variableToCollect: string, type: string, functionName: string, filePath: string, line: number, other?: any) {
-    if (other) {
+    if (script == 'method') {
       return `collector.collect({
-      script: ${script},
+      script: '${script}',
       type: '${type}',
       value: {content: ${variableToCollect}},
       line: ${line},
       function: '${functionName}',
       file: '${relativePathForCollectorMap(filePath)}',
       timestamp: Date.now(),
-      other: ${other}
+      other: {className: this.constructor.name, other: ${other}}
     })`
     }
     return `collector.collect({
-      script: ${script},
+      script: '${script}',
       type: '${type}',
-      value: ${variableToCollect},
+      value: {content: ${variableToCollect}},
       line: ${line},
       function: '${functionName}',
       file: '${relativePathForCollectorMap(filePath)}',
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      other: {other: ${other}}
     })`
   }
 
