@@ -2,14 +2,20 @@ import {InstrumentedEvent} from "@butopen/notest-model";
 
 const objectHash = require('object-hash')
 
-export function makeTitle(inputs: InstrumentedEvent[]) {
-  return inputs.map(elem => {
+export function makeTitle(inputs: InstrumentedEvent[], output: InstrumentedEvent) {
+  let title = inputs.map(elem => {
     if (typeof elem.value == "object") {
       return objectHash(elem.value)
     } else {
       return elem.value
     }
   }).join('-');
+  if (typeof output.value == "object") {
+    title += "-" + objectHash(output.value)
+  } else {
+    title += "-" + output.value
+  }
+  return title;
 }
 
 export function giveParamsAndExpected(inputs: InstrumentedEvent[], output: InstrumentedEvent) {
