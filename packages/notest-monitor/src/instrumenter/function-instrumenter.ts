@@ -56,8 +56,6 @@ export class FunctionInstrumenter {
     const sourceFile = this.project.getSourceFileOrThrow(sourceFilePath)
     const sourceFunction = sourceFile.getFunctionOrThrow(functionName)
 
-    this.cleanOnInit(sourceFunction, sourceFile, functionName)
-
     let wrapFunctionName = functionName + 'Instrumented'
 
     const pathWrapFile = `${sourceFile.getDirectoryPath()}/instrumentation/${sourceFile.getBaseName()}`
@@ -74,7 +72,7 @@ export class FunctionInstrumenter {
     }
 
     wrapFunction = wrapFile.addFunction({name: wrapFunctionName, isExported: true})
-
+    this.cleanOnInit(sourceFunction, sourceFile, functionName, wrapFile)
     return {sourceFile, sourceFunction, wrapFile, wrapFunction}
   }
 
@@ -83,11 +81,12 @@ export class FunctionInstrumenter {
     sourceFunction.getParameters().forEach(par => {
       parametersList.push(par.getName())
     })
+    //useInstrumented_${sourceFunction.getName()}()
     sourceFunction.insertStatements(0, writer =>
-      writer.writeLine(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceFunction.getName()}()){return ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
+      writer.writeLine(`/* decorated by notest... just ignore -> */if(true){return ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
   }
 
-  private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile, functionName) {
+  private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile, functionName: string, wrapFile: SourceFile) {
     if (sourceFunction.getStatements()[0]!.getText().includes('instrumentationRules')) {
       sourceFunction.removeStatement(0)
     }
@@ -104,5 +103,10 @@ export class FunctionInstrumenter {
         }
       }
     })
+
+    const functionToDelete = wrapFile.getFunction(`useInstrumented_${functionName}`)
+    if (functionToDelete) {
+      functionToDelete.remove()
+    }
   }
 }
