@@ -86,7 +86,8 @@ export class MethodInstrumenter {
 
 
   private addCallInSourceFile(sourceMethod: MethodDeclaration, className: string, sourceFile: SourceFile) {
-    sourceFile.addStatements(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceMethod.getName()}()){instrument_${sourceMethod.getName()}(${className})}`)
+    //useInstrumented_${sourceMethod.getName()}()
+    sourceFile.addStatements(`/* decorated by notest... just ignore -> */if(true){instrument_${sourceMethod.getName()}(${className})}`)
   }
 
   private cleanOnInit(sourceFile: SourceFile, className: string, methodName: string, wrapFile: SourceFile) {
