@@ -36,9 +36,16 @@ export class TestGeneratorService {
         routineList.push({routine: routineBuffer.splice(0)})
       }
     }
-    return {
-      scriptType: response[0]['scripttype'],
-      scriptData: routineList
+    if (response.length) {
+      return {
+        scriptType: response[0]['scripttype'],
+        scriptData: routineList
+      }
+    } else {
+      return {
+        scriptType: '',
+        scriptData: routineList
+      }
     }
   }
 

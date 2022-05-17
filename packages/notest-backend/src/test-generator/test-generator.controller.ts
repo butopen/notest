@@ -18,7 +18,9 @@ export class TestGeneratorController {
     console.log("instructions arrived: " + JSON.stringify(scriptInfo))
     let generationInstructions: { scriptType, scriptData: { routine: InstrumentedEvent[] }[] }
       = await this.testGeneratorService.getInfoFromDb(scriptInfo)
-
+    if (generationInstructions.scriptType == '') {
+      return {ok: false, error: 'no such function/method on db'}
+    }
     for (let routine of generationInstructions.scriptData) {
       if (generationInstructions.scriptType == "method") {
         await this.testGeneratorService.generateMethodTest(routine.routine, this.project)
