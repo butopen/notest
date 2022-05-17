@@ -9,7 +9,7 @@ class CollectorCreator {
       type: '${type}',
       value: {content: ${variableToCollect}},
       line: ${line},
-      function: "'" + this.constructor.name + "." + '${functionName}' + "'",
+      function: this.constructor.name + "." + '${functionName}',
       file: '${relativePathForCollectorMap(filePath)}',
       timestamp: Date.now(),
       other: ${other}
