@@ -49,7 +49,8 @@ export class InstrumenterUtils {
             scriptName,
             filePath,
             wrapScript.getStartLineNumber())
-        )
+        ).newLine()
+        .write('return error')
         .write('}}')
     )
   }
