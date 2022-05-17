@@ -9,7 +9,7 @@ export class ExpressionInstrumenter implements InstrumentStatementInterface {
     statement.replaceWithText(writer => {
         writer.writeLine(statement.getFullText()).newLine()
         if (expressionStatement.getChildren()[0].getKind() == SyntaxKind.BinaryExpression) {
-          const variableToCollect = expressionStatement.getFirstDescendantByKindOrThrow(SyntaxKind.Identifier).getText()
+          const variableToCollect = expressionStatement.getDescendantsOfKind(SyntaxKind.BinaryExpression)[0].getLeft().getText()
           writer.newLine()
             .write(
               collectorCreator.addInfo(
