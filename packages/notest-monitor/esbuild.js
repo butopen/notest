@@ -9,7 +9,7 @@ const options = {
     minify: false,
     sourcemap: true,
     platform: 'node',
-    external: ['ts-morph', 'chokidar', '@butopen/notest-collector'],
+    external: ['ts-morph', 'chokidar', '@butopen/notest-collector', 'simple-git'],
     format: 'esm',
     target: 'es2020',
     outfile: 'dist/index.js',
