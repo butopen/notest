@@ -49,9 +49,9 @@ export class MethodInstrumenter {
     this.addCallInSourceFile(sourceMethod, className, sourceFile)
     const nameFunctionToImport = 'instrument_' + sourceMethod.getName()
     importInstrumenter.addImportsSourceFile(sourceFile, nameFunctionToImport, sourceMethod.getName())
-
+    const handleAsync = sourceMethod.isAsync() ? "async" : ""
     instrumentFunction.getBody()!
-      .replaceWithText(`{${className}.prototype.${methodName} = ${wrapFunction.getText()}}`)
+      .replaceWithText(`{${className}.prototype.${methodName} = ${handleAsync} ${wrapFunction.getText()}}`)
 
     wrapFile.organizeImports()
     wrapFile.formatText()

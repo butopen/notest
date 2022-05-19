@@ -71,7 +71,7 @@ export class FunctionInstrumenter {
       }
     }
 
-    wrapFunction = wrapFile.addFunction({name: wrapFunctionName, isExported: true})
+    wrapFunction = wrapFile.addFunction({name: wrapFunctionName, isExported: true, isAsync: sourceFunction.isAsync()})
     this.cleanOnInit(sourceFunction, sourceFile, functionName, wrapFile)
     return {sourceFile, sourceFunction, wrapFile, wrapFunction}
   }
@@ -82,8 +82,9 @@ export class FunctionInstrumenter {
       parametersList.push(par.getName())
     })
     //useInstrumented_${sourceFunction.getName()}()
+    const handleAsync: string = sourceFunction.isAsync() ? "await" : ""
     sourceFunction.insertStatements(0, writer =>
-      writer.writeLine(`/* decorated by notest... just ignore -> */if(true){return ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
+      writer.writeLine(`/* decorated by notest... just ignore -> */if(true){return ${handleAsync} ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
   }
 
   private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile, functionName: string, wrapFile: SourceFile) {
