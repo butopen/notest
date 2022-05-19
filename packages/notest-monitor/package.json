@@ -18,6 +18,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "simple-git": "^3.7.1",
     "ts-morph": "^14.0.0",
     "@butopen/notest-collector": "workspace:*",
     "@butopen/notest-model": "workspace:*",

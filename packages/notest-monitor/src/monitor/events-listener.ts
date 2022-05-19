@@ -3,6 +3,7 @@ import {FSWatcher} from "chokidar";
 import {FunctionInstrumenter} from "../instrumenter/function-instrumenter";
 import {MethodInstrumenter} from "../instrumenter/method-instrumenter";
 import {Project} from "ts-morph";
+import {GitEventsHandler} from "./git-events-handler";
 
 export class EventsListener {
   private watcher: FSWatcher;
@@ -36,18 +37,61 @@ export class EventsListener {
     return this.path
   }
 
+  async restartListen() {
+    await this.listen()
+  }
+
   async stopListen() {
     await this.watcher.close()
   }
 
-  private addFunctions(path: string) {
-    this.functionInstrumenter.instrumentFileFunctions(path)
-    this.methodInstrumenter.instrumentFileMethods(path)
+  private addFunctions(pathFile: string) {
+    this.functionInstrumenter.instrumentFileFunctions(pathFile)
+    this.methodInstrumenter.instrumentFileMethods(pathFile)
   }
 
-  private controlChanges(path: string) {
-    this.functionInstrumenter.instrumentFileFunctions(path)
-    this.methodInstrumenter.instrumentFileMethods(path)
-    this.stopListen().then(r => console.log("instrumentation complete, listener stopped"))
+  private async controlChanges(pathFile: string) {
+    const idxs = await new GitEventsHandler().getIdxsFromDiff(pathFile)
+    const functionNames = this.getFunctionsNameFromIdx(idxs, pathFile)
+    functionNames.forEach(name => this.functionInstrumenter.instrument(pathFile, name))
+
+    const methodsNames = this.getMethodsNameFromIdxs(idxs, pathFile)
+    console.log(methodsNames)
+    methodsNames.forEach(elem => this.methodInstrumenter.instrument(pathFile, elem.className, elem.methodName))
+  }
+
+  getFunctionsNameFromIdx(idxs: { start: number, end: number }[], path) {
+    let functionNames: string[] = []
+    idxs.forEach(idx => {
+      let file = this.project.getSourceFile(path)
+      const interestFunctions = file!
+        .getFunctions()
+        .filter((fun) => {
+          return idx.start <= fun.getEndLineNumber() && fun.getStartLineNumber() <= idx.end
+        })
+      interestFunctions.forEach(interestFunc => {
+        if (interestFunc.getName()) {
+          functionNames.push(interestFunc.getName()!)
+        }
+      })
+    })
+    return functionNames
+  }
+
+  getMethodsNameFromIdxs(idxs: { start: number, end: number }[], path) {
+    let methodsName: { className: string, methodName: string }[] = []
+    let file = this.project.getSourceFile(path)
+    idxs.forEach(idx => {
+      const interestClasses = file!
+        .getClasses()
+        .filter(clas => idx.start <= clas.getEndLineNumber() && clas.getStartLineNumber() <= idx.end)
+      interestClasses.forEach(clas => {
+        const interestMethods = clas
+          .getMethods()
+          .filter(method => idx.start <= method.getEndLineNumber() && method.getStartLineNumber() <= idx.end)
+        interestMethods.forEach(method => methodsName.push({className: clas.getName()!, methodName: method.getName()}))
+      })
+    })
+    return methodsName;
   }
 }
