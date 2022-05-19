@@ -95,4 +95,21 @@ export class InstrumenterUtils {
     }
   }
 
+  handleInFileFunctions(sourceFile: SourceFile, wrapFile: SourceFile) {
+    sourceFile.getFunctions().forEach(fun => {
+      if (fun.isExported()) {
+        wrapFile.insertStatements(0, `import {${fun.getName()}} from '../${sourceFile.getBaseNameWithoutExtension()}'`)
+      } else {
+        const functionInWrap = wrapFile.getFunction(fun.getName()!)
+        if (functionInWrap) {
+          functionInWrap.remove()
+        }
+        wrapFile.addStatements(fun.getFullText())
+      }
+    })
+
+
+  }
+
+
 }

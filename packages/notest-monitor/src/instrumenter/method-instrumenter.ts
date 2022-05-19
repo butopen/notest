@@ -53,6 +53,7 @@ export class MethodInstrumenter {
     instrumentFunction.getBody()!
       .replaceWithText(`{${className}.prototype.${methodName} = ${handleAsync} ${wrapFunction.getText()}}`)
 
+    instrumenterUtils.handleInFileFunctions(sourceFile, wrapFile)
     wrapFile.organizeImports()
     wrapFile.formatText()
     this.project.saveSync()

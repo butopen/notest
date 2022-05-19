@@ -46,6 +46,7 @@ export class FunctionInstrumenter {
     const nameFunctionToImport = wrapFunction.getName()
     importInstrumenter.addImportsSourceFile(sourceFile, nameFunctionToImport, sourceFunction.getName())
 
+    instrumenterUtils.handleInFileFunctions(sourceFile, wrapFile)
     wrapFile.organizeImports()
     wrapFile.formatText()
     this.project.saveSync()
