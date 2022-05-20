@@ -31,10 +31,10 @@ export class TestGeneratorService {
     let routineList: { routine: InstrumentedEvent[] }[] = [];
     let routineBuffer: InstrumentedEvent[] = [];
     for (const variable of variables) {
-      routineBuffer.push(variable)
-      if (variable.type == 'output') {
+      if (variable.type == 'text') {
         routineList.push({routine: routineBuffer.splice(0)})
       }
+      routineBuffer.push(variable)
     }
     if (response.length) {
       return {

@@ -34,12 +34,11 @@ export class FunctionInstrumenter {
       wrapFunction.addStatements(sourceFunction.getBodyText()!)
     } else throw new Error("Function hasn't body")
 
-    instrumenterUtils.addFullTextCollector(wrapFunction, functionName, sourceFunction.getFullText(), sourceFilePath)
     instrumenterUtils.instrumentBody(wrapFunction, sourceFilePath, functionName)
 
     // Instrument input parameters
     instrumenterUtils.setParametersCollectors(sourceFunction, wrapFunction, functionName)
-
+    instrumenterUtils.addFullTextCollector(wrapFunction, functionName, sourceFunction.getFullText(), sourceFilePath)
     instrumenterUtils.wrapInTryCatch(wrapFunction, sourceFilePath, functionName)
 
     instrumenterUtils.addCheckFunctionInInstrumentedFunctionFile(wrapFile, sourceFunction)

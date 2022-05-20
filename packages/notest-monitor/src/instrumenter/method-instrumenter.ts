@@ -39,13 +39,12 @@ export class MethodInstrumenter {
       throw new Error("Function hasn't body")
     }
 
-    instrumenterUtils.addFullTextCollector(wrapFunction, methodName, sourceMethod.getFullText(), sourceFilePath)
     instrumenterUtils.instrumentBody(wrapFunction, sourceFilePath, methodName)
 
     // Instrument input parameters
     wrapFunction.addParameters([{name: 'this'}])
     instrumenterUtils.setParametersCollectors(sourceMethod, wrapFunction, methodName)
-
+    instrumenterUtils.addFullTextCollector(wrapFunction, methodName, sourceMethod.getFullText(), sourceFilePath)
     instrumenterUtils.wrapInTryCatch(wrapFunction, sourceFilePath, methodName)
     instrumenterUtils.addCheckFunctionInInstrumentedMethodFile(wrapFile, sourceMethod, className)
     this.addCallInSourceFile(sourceMethod, className, sourceFile)
