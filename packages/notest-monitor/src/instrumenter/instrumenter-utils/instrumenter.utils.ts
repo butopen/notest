@@ -55,11 +55,18 @@ export class InstrumenterUtils {
     )
   }
 
-  addCheckFunctionInInstrumentedFile(wrapFile: SourceFile, sourceScript: FunctionDeclaration | MethodDeclaration) {
+  addCheckFunctionInInstrumentedFunctionFile(wrapFile: SourceFile, sourceScript: FunctionDeclaration) {
     const sourceFilePath = sourceScript.getSourceFile().getFilePath().slice(0, -3)
     const functionName = sourceScript.getName()
     const checkFunction = wrapFile.addFunction({name: `useInstrumented_${functionName}`, isExported: true})
     checkFunction.addStatements(`return instrumentationRules.check( {path: '${relativePathForCollectorMap(sourceFilePath)}', name: '${sourceScript.getName()}'})`)
+  }
+
+  addCheckFunctionInInstrumentedMethodFile(wrapFile: SourceFile, sourceScript: MethodDeclaration, className: string) {
+    const sourceFilePath = sourceScript.getSourceFile().getFilePath().slice(0, -3)
+    const functionName = sourceScript.getName()
+    const checkFunction = wrapFile.addFunction({name: `useInstrumented_${functionName}`, isExported: true})
+    checkFunction.addStatements(`return instrumentationRules.check( {path: '${relativePathForCollectorMap(sourceFilePath)}', name: '${className + '.' + sourceScript.getName()}'})`)
   }
 
   instrumentBody(wrapScript: FunctionDeclaration, filePath: string, scriptName: string) {

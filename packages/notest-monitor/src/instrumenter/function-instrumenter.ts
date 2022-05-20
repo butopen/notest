@@ -1,6 +1,7 @@
 import {FunctionDeclaration, Project, SourceFile} from "ts-morph";
 import {ImportInstrumenter} from "./instrumenter-utils/import-instrumenter";
 import {InstrumenterUtils} from "./instrumenter-utils/instrumenter.utils";
+import {instrumentationRules, relativePathForCollectorMap} from "@butopen/notest-collector"
 
 export class FunctionInstrumenter {
   private project: Project;
@@ -40,13 +41,17 @@ export class FunctionInstrumenter {
 
     instrumenterUtils.wrapInTryCatch(wrapFunction, sourceFilePath, functionName)
 
-    instrumenterUtils.addCheckFunctionInInstrumentedFile(wrapFile, sourceFunction)
+    instrumenterUtils.addCheckFunctionInInstrumentedFunctionFile(wrapFile, sourceFunction)
     this.addIfOnSourceFile(sourceFunction)
 
     const nameFunctionToImport = wrapFunction.getName()
     importInstrumenter.addImportsSourceFile(sourceFile, nameFunctionToImport, sourceFunction.getName())
 
     instrumenterUtils.handleInFileFunctions(sourceFile, wrapFile)
+    instrumentationRules.updateMapRules({
+      path: relativePathForCollectorMap(sourceFile.getFilePath().slice(0, -3)),
+      name: sourceFile.getBaseName()
+    })
     wrapFile.organizeImports()
     wrapFile.formatText()
     this.project.saveSync()
@@ -82,10 +87,9 @@ export class FunctionInstrumenter {
     sourceFunction.getParameters().forEach(par => {
       parametersList.push(par.getName())
     })
-    //useInstrumented_${sourceFunction.getName()}()
     const handleAsync: string = sourceFunction.isAsync() ? "await" : ""
     sourceFunction.insertStatements(0, writer =>
-      writer.writeLine(`/* decorated by notest... just ignore -> */if(true){return ${handleAsync} ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
+      writer.writeLine(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceFunction.getName()}()){return ${handleAsync} ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
   }
 
   private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile, functionName: string, wrapFile: SourceFile) {

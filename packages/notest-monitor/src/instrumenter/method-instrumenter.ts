@@ -1,6 +1,7 @@
 import {FunctionDeclaration, MethodDeclaration, Project, SourceFile} from "ts-morph";
 import {ImportInstrumenter} from "./instrumenter-utils/import-instrumenter";
 import {InstrumenterUtils} from "./instrumenter-utils/instrumenter.utils";
+import {instrumentationRules, relativePathForCollectorMap} from "@butopen/notest-collector"
 
 export class MethodInstrumenter {
   private project: Project;
@@ -45,7 +46,7 @@ export class MethodInstrumenter {
     instrumenterUtils.setParametersCollectors(sourceMethod, wrapFunction, methodName)
 
     instrumenterUtils.wrapInTryCatch(wrapFunction, sourceFilePath, methodName)
-    instrumenterUtils.addCheckFunctionInInstrumentedFile(wrapFile, sourceMethod)
+    instrumenterUtils.addCheckFunctionInInstrumentedMethodFile(wrapFile, sourceMethod, className)
     this.addCallInSourceFile(sourceMethod, className, sourceFile)
     const nameFunctionToImport = 'instrument_' + sourceMethod.getName()
     importInstrumenter.addImportsSourceFile(sourceFile, nameFunctionToImport, sourceMethod.getName())
@@ -54,6 +55,10 @@ export class MethodInstrumenter {
       .replaceWithText(`{${className}.prototype.${methodName} = ${handleAsync} ${wrapFunction.getText()}}`)
 
     instrumenterUtils.handleInFileFunctions(sourceFile, wrapFile)
+    instrumentationRules.updateMapRules({
+      path: relativePathForCollectorMap(sourceFile.getFilePath().slice(0, -3)),
+      name: className + '.' + methodName
+    })
     wrapFile.organizeImports()
     wrapFile.formatText()
     this.project.saveSync()
@@ -87,8 +92,7 @@ export class MethodInstrumenter {
 
 
   private addCallInSourceFile(sourceMethod: MethodDeclaration, className: string, sourceFile: SourceFile) {
-    //useInstrumented_${sourceMethod.getName()}()
-    sourceFile.addStatements(`/* decorated by notest... just ignore -> */if(true){instrument_${sourceMethod.getName()}(${className})}`)
+    sourceFile.addStatements(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceMethod.getName()}()){instrument_${sourceMethod.getName()}(${className})}`)
   }
 
   private cleanOnInit(sourceFile: SourceFile, className: string, methodName: string, wrapFile: SourceFile) {
