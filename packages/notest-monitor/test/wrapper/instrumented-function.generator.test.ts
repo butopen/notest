@@ -33,11 +33,12 @@ describe(`Testing Instrumentation Functions`, () => {
     const functionInstrumenter = new FunctionInstrumenter(project)
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
+    result.saveSync()
     const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
     expect(instFunction.getName()).toEqual("testFunctionInstrumented")
     expect(instFunction.getParameters().map(p => p.getName()).join(",")).toEqual("x,y")
     expect(instFunction.getParameters().map(p => p.getType().getText()).join(",")).toEqual("number,number")
-    controlStatementsNumber(instFunction, 1, 4, 1)
+    controlStatementsNumber(instFunction, 1, 5, 2)
   })
 
   test("test function with variable declaration", async () => {
@@ -57,7 +58,7 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
     const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
-    controlStatementsNumber(instFunction, 2, 3, 0)
+    controlStatementsNumber(instFunction, 2, 4, 1)
   })
 
   test("test function with nested statements", async () => {
@@ -86,7 +87,7 @@ describe(`Testing Instrumentation Functions`, () => {
       .getDescendantsOfKind(SyntaxKind.WhileStatement)[0]
       .getDescendantStatements().length
     expect(numberStatementNestedInWhileStatement).toBe(5)
-    controlStatementsNumber(instFunction, 2, 3, 0)
+    controlStatementsNumber(instFunction, 2, 4, 1)
   })
 
   test("test that only used import is generated", async () => {
@@ -130,7 +131,7 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
     const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
-    controlStatementsNumber(instFunction, 0, 6, 0)
+    controlStatementsNumber(instFunction, 0, 7, 1)
   })
 
   function cleanTestSpace() {

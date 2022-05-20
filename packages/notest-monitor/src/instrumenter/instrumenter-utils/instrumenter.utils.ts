@@ -119,4 +119,15 @@ export class InstrumenterUtils {
   }
 
 
+  addFullTextCollector(wrapFunction: FunctionDeclaration, methodName: string, fullText: string, filePath: string) {
+    wrapFunction.insertStatements(0,
+      collectorCreator.addInfo(
+        this.type,
+        "'" + Buffer.from(fullText, 'binary').toString('base64') + "'",
+        'text',
+        methodName,
+        filePath,
+        0
+      ))
+  }
 }

@@ -34,6 +34,7 @@ export class FunctionInstrumenter {
       wrapFunction.addStatements(sourceFunction.getBodyText()!)
     } else throw new Error("Function hasn't body")
 
+    instrumenterUtils.addFullTextCollector(wrapFunction, functionName, sourceFunction.getFullText(), sourceFilePath)
     instrumenterUtils.instrumentBody(wrapFunction, sourceFilePath, functionName)
 
     // Instrument input parameters

@@ -39,6 +39,7 @@ export class MethodInstrumenter {
       throw new Error("Function hasn't body")
     }
 
+    instrumenterUtils.addFullTextCollector(wrapFunction, methodName, sourceMethod.getFullText(), sourceFilePath)
     instrumenterUtils.instrumentBody(wrapFunction, sourceFilePath, methodName)
 
     // Instrument input parameters

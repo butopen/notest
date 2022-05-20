@@ -1,7 +1,6 @@
 import fs from 'fs'
 
 function getMapRules(mapRulePath: string) {
-  console.log(mapRulePath)
   try {
     return fs.readFileSync(mapRulePath.toString())
   } catch (e: any) {

@@ -18,7 +18,7 @@ export class InstrumentedService {
             create table if not exists ${this.tableName} (
                 infoid BIGSERIAL PRIMARY KEY,
                 scripttype text CHECK (scripttype IN ('function' , 'method')),
-                nttype text CHECK (nttype IN ('input' , 'output' , 'variable' , 'expression' , 'exception')),
+                nttype text CHECK (nttype IN ('input' , 'output' , 'variable' , 'expression' , 'exception', 'text')),
                 value JSONB,
                 line integer,
                 functionname text,
