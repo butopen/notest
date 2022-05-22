@@ -27,11 +27,11 @@ class InstrumentationRules {
     }
   }
 
-  updateMapRules(pair: { path: string, name: string }) {
+  updateMapRules(pair: { path: string, name: string }, value: boolean) {
     if (this.mapRules[pair.path]) {
-      this.mapRules[pair.path][pair.name] = true
+      this.mapRules[pair.path][pair.name] = value
     } else {
-      this.mapRules[pair.path] = {[pair.name]: true}
+      this.mapRules[pair.path] = {[pair.name]: value}
     }
     fs.writeFileSync(this.mapRulePath, JSON.stringify(this.mapRules))
   }

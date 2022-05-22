@@ -1,6 +1,7 @@
 import {InstrumentedEvent} from "@butopen/notest-model"
 import {RequestInfo, RequestInit} from 'node-fetch';
 import {stringify} from 'flatted';
+import {instrumentationRules} from "./instrumentation-rules/instrumentation-rules";
 
 const fetch = (url: RequestInfo, init?: RequestInit) =>
   import('node-fetch').then(({default: fetch}) => fetch(url, init));
@@ -17,6 +18,7 @@ class NoTestCollector {
   private static async send() {
     if (NoTestCollector.eventsToSend.length) {
       let data = NoTestCollector.eventsToSend.splice(0)
+      data = filterDataToNotInstrument(data)
       try {
         console.log("sending events to db")
         const rawResponse = await fetch("http://localhost:3000/api/instrumented-event", {
@@ -45,15 +47,26 @@ class NoTestCollector {
    * @param event
    */
   async collect(event: InstrumentedEvent) {
-    if (this.toSend(event)) {
-      NoTestCollector.eventsToSend.push(event)
-      console.log("collecting: ", event)
-    }
-  }
-
-  private toSend(event: InstrumentedEvent) {
-    return typeof event.value['content'] !== 'object'
+    catchCircularity(event)
+    NoTestCollector.eventsToSend.push(event)
+    console.log("collecting: ", event)
   }
 }
 
 export const collector = new NoTestCollector()
+
+
+function catchCircularity(event: InstrumentedEvent) {
+  try {
+    JSON.stringify(event)
+  } catch (errorCircularity) {
+    instrumentationRules.updateMapRules({path: event.file, name: event.function}, false)
+    console.log(event.function + 'not instrumentable')
+  }
+}
+
+function filterDataToNotInstrument(data: InstrumentedEvent[]) {
+  return data.filter(event => {
+    instrumentationRules.check({path: event.file, name: event.function})
+  });
+}

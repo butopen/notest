@@ -51,7 +51,7 @@ export class FunctionInstrumenter {
     instrumentationRules.updateMapRules({
       path: relativePathForCollectorMap(sourceFile.getFilePath().slice(0, -3)),
       name: sourceFile.getBaseName()
-    })
+    }, true)
     wrapFile.organizeImports()
     wrapFile.formatText()
     this.project.saveSync()
