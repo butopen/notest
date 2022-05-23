@@ -14,7 +14,16 @@ describe("Test add event to DB and generation test", () => {
     "database": "testnt",
     "port": 5432
   }
+
   const db: PostgresDbService = new PostgresDbService(testConfig)
+
+  beforeEach(() => {
+    db.query(`delete from instrumentedevent`)
+  })
+
+  afterEach(() => {
+    db.query(`delete from instrumentedevent`)
+  })
   const instFunction = new InstrumentedService(db)
 
   test("add events and trigger test generation of function", async () => {
@@ -42,7 +51,17 @@ describe("Test add event to DB and generation test", () => {
         file: filePath,
         function: functionName,
         line: 0,
-        timestamp: Date.now() + i,
+        timestamp: i,
+        type: "text",
+        value: {content: "textofScript"}
+      })
+
+      eventsToAdd.push({
+        script: scriptType,
+        file: filePath,
+        function: functionName,
+        line: 1,
+        timestamp: i,
         type: "input",
         value: {content: i}
       })
@@ -51,8 +70,8 @@ describe("Test add event to DB and generation test", () => {
         script: scriptType,
         file: filePath,
         function: functionName,
-        line: 1,
-        timestamp: Date.now() + i,
+        line: 2,
+        timestamp: i,
         type: "output",
         value: {content: i + 1}
       })
@@ -63,7 +82,7 @@ describe("Test add event to DB and generation test", () => {
   async function saveOnDbAndTriggerGeneration(scriptType, filePath, functionName, eventsToAdd) {
     let ids = []
     await instFunction.bulkSave(eventsToAdd).then(id => ids = id)
-    console.log(ids)
+    console.log(ids.length)
 
     const rawResponse = await fetch("http://localhost:3000/test-generator/generate-test", {
       method: "POST",

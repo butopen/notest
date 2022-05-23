@@ -2,6 +2,7 @@ import {InstrumentedEvent} from "@butopen/notest-model/dist";
 import {TestGeneratorService} from "../../src/test-generator/test-generator.service";
 import {DBConfig, PostgresDbService} from "../../src/postgres/postgres-db.service";
 import {Project} from "ts-morph";
+import {DbEventApiService} from "../../src/db-event-api/db-event-api.service";
 
 describe("Test generation", () => {
   const testConfig: DBConfig = {
@@ -15,7 +16,7 @@ describe("Test generation", () => {
   test("test on generation of tests", async () => {
 
     const testRoutine: InstrumentedEvent[] = []
-    const testGenerator = new TestGeneratorService(new PostgresDbService(testConfig))
+    const testGenerator = new TestGeneratorService(new PostgresDbService(testConfig), new DbEventApiService(new PostgresDbService(testConfig)))
     testRoutine.push({
       script: "function",
       file: "path/testFile.ts",
