@@ -23,7 +23,13 @@ export class FunctionInstrumenter {
   instrument(sourceFilePath: string, functionName: string) {
     const instrumenterUtils = new InstrumenterUtils("function")
     console.log("instrumenting " + functionName)
-    const {sourceFile, sourceFunction, wrapFile, wrapFunction} = this.initialize(sourceFilePath, functionName)
+    const {
+      sourceFile,
+      sourceFunction,
+      wrapFile,
+      wrapFunction,
+      instrumentFunction
+    } = this.initialize(sourceFilePath, functionName)
 
     const importInstrumenter = new ImportInstrumenter()
 
@@ -35,17 +41,17 @@ export class FunctionInstrumenter {
     } else throw new Error("Function hasn't body")
 
     instrumenterUtils.instrumentBody(wrapFunction, sourceFilePath, functionName)
-
-    // Instrument input parameters
     instrumenterUtils.setParametersCollectors(sourceFunction, wrapFunction, functionName)
     instrumenterUtils.addFullTextCollector(wrapFunction, functionName, sourceFunction.getFullText(), sourceFilePath)
     instrumenterUtils.wrapInTryCatch(wrapFunction, sourceFilePath, functionName)
-
     instrumenterUtils.addCheckFunctionInInstrumentedFunctionFile(wrapFile, sourceFunction)
-    this.addIfOnSourceFile(sourceFunction)
+    this.addIfOnSourceFile(sourceFile, sourceFunction)
 
-    const nameFunctionToImport = wrapFunction.getName()
+    const nameFunctionToImport = instrumentFunction.getName()
     importInstrumenter.addImportsSourceFile(sourceFile, nameFunctionToImport, sourceFunction.getName())
+
+    instrumentFunction.getBody()!
+      .replaceWithText(writer => writer.writeLine(`{return ${wrapFunction.getFullText()}}`))
 
     instrumenterUtils.handleInFileFunctions(sourceFile, wrapFile)
     instrumentationRules.updateMapRules({
@@ -63,7 +69,7 @@ export class FunctionInstrumenter {
     const sourceFile = this.project.getSourceFileOrThrow(sourceFilePath)
     const sourceFunction = sourceFile.getFunctionOrThrow(functionName)
 
-    let wrapFunctionName = functionName + 'Instrumented'
+    let wrapFunctionName = 'instrument_' + functionName
 
     const pathWrapFile = `${sourceFile.getDirectoryPath()}/instrumentation/${sourceFile.getBaseName()}`
 
@@ -72,37 +78,39 @@ export class FunctionInstrumenter {
     if (!wrapFile) {
       wrapFile = this.project.createSourceFile(pathWrapFile)
     } else {
-      wrapFunction = wrapFile.getFunction(wrapFunctionName)
-      if (wrapFunction) {
-        wrapFunction.remove()
+      if (wrapFile.getFunction(wrapFunctionName)) {
+        wrapFile.getFunction(wrapFunctionName)!.remove()
+        wrapFile.organizeImports()
       }
     }
 
-    wrapFunction = wrapFile.addFunction({name: wrapFunctionName, isExported: true, isAsync: sourceFunction.isAsync()})
+    const instrumentFunction = wrapFile.addFunction({
+      name: wrapFunctionName,
+      isExported: true,
+      isAsync: sourceFunction.isAsync()
+    })
+    wrapFunction = instrumentFunction.addFunction({name: 'instrumentation', isAsync: sourceFunction.isAsync()})
     this.cleanOnInit(sourceFunction, sourceFile, functionName, wrapFile)
-    return {sourceFile, sourceFunction, wrapFile, wrapFunction}
+    return {sourceFile, sourceFunction, wrapFile, wrapFunction, instrumentFunction}
   }
 
-  private addIfOnSourceFile(sourceFunction: FunctionDeclaration) {
-    let parametersList: string[] = []
-    sourceFunction.getParameters().forEach(par => {
-      parametersList.push(par.getName())
-    })
+  private addIfOnSourceFile(sourceFile: SourceFile, sourceFunction) {
     const handleAsync: string = sourceFunction.isAsync() ? "await" : ""
-    sourceFunction.insertStatements(0, writer =>
-      writer.writeLine(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceFunction.getName()}()){return ${handleAsync} ${sourceFunction.getName()}Instrumented(${parametersList.join(',')})}`))
+
+    sourceFile.addStatements(writer =>
+      writer.writeLine(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceFunction.getName()}()){/*@ts-ignore*/ ${sourceFunction.getName()} = ${handleAsync} instrument_${sourceFunction.getName()}()}`))
   }
 
   private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile, functionName: string, wrapFile: SourceFile) {
-    sourceFunction
+    sourceFile
       .getStatements()
       .filter((statement) => statement.getText().includes(`useInstrumented_${functionName}()`))
       .forEach((statement) => statement.remove())
     sourceFile.getImportDeclarations().forEach(imp => {
       if (imp.getImportClause()) {
-        if (imp.getImportClause()!.getText().includes(`${functionName}Instrumented`) || imp.getImportClause()!.getText().includes(`useInstrumented_${functionName}`)) {
+        if (imp.getImportClause()!.getText().includes(`instrument_${functionName}`) || imp.getImportClause()!.getText().includes(`useInstrumented_${functionName}`)) {
           imp.getImportClause()!.getNamedImports().forEach(name => {
-            if (name.getText() == `${functionName}Instrumented` || name.getText() == `useInstrumented_${functionName}`)
+            if (name.getText() == `instrument_${functionName}` || name.getText() == `useInstrumented_${functionName}`)
               name.remove()
           })
           if (!imp.getImportClause()) {
