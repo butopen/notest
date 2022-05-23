@@ -62,6 +62,7 @@ export class MethodInstrumenter {
     wrapFile.organizeImports()
     wrapFile.formatText()
     this.project.saveSync()
+    console.log("ended")
     return wrapFile
   }
 

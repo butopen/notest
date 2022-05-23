@@ -55,6 +55,7 @@ export class FunctionInstrumenter {
     wrapFile.organizeImports()
     wrapFile.formatText()
     this.project.saveSync()
+    console.log("ended")
     return wrapFile
   }
 

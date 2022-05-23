@@ -29,6 +29,7 @@ export class EventsListener {
     this.watcher
       .on('add', path => {
         console.log("added file at " + path)
+        this.addFunctions(path)
       })
       .on('change', path => {
         console.log("changed file at " + path)
@@ -38,11 +39,11 @@ export class EventsListener {
   }
 
   async restartListen() {
+    this.watcher = chokidar.watch(this.path, {
+      ignored: '**/instrumentation/**', // ignore dotfiles
+      persistent: true
+    });
     await this.listen()
-  }
-
-  async stopListen() {
-    await this.watcher.close()
   }
 
   private addFunctions(pathFile: string) {
@@ -51,13 +52,16 @@ export class EventsListener {
   }
 
   private async controlChanges(pathFile: string) {
+    await this.watcher.close()
+    this.project.getSourceFiles().forEach((sourceFile) => sourceFile.refreshFromFileSystemSync())
     const idxs = await new GitEventsHandler().getIdxsFromDiff(pathFile)
+
     const functionNames = this.getFunctionsNameFromIdx(idxs, pathFile)
     functionNames.forEach(name => this.functionInstrumenter.instrument(pathFile, name))
 
     const methodsNames = this.getMethodsNameFromIdxs(idxs, pathFile)
-    console.log(methodsNames)
     methodsNames.forEach(elem => this.methodInstrumenter.instrument(pathFile, elem.className, elem.methodName))
+    await this.restartListen()
   }
 
   getFunctionsNameFromIdx(idxs: { start: number, end: number }[], path) {
