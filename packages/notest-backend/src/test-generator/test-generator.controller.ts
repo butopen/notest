@@ -14,10 +14,10 @@ export class TestGeneratorController {
   }
 
   @Post('generate-test')
-  async testGenerator(@Body() scriptInfo) { //TODO define TestInstruction Model
+  async testGenerator(@Body() scriptInfo) {
     console.log("instructions arrived: " + JSON.stringify(scriptInfo))
     let generationInstructions: { scriptType, scriptData: { routine: InstrumentedEvent[] }[] }
-      = await this.testGeneratorService.getInfoFromDb(scriptInfo)
+      = await this.testGeneratorService.getRoutines(scriptInfo)
     if (generationInstructions.scriptType == '') {
       return {ok: false, error: 'no such function/method on db'}
     }

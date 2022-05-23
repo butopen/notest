@@ -3,48 +3,36 @@ import {DB} from "../postgres/postgres-db.service";
 import {InstrumentedEvent} from "@butopen/notest-model";
 import {Project} from "ts-morph";
 import {giveParamsAndExpected, makeTitle} from "./test-generator.utils";
+import {DbEventApiService} from "../db-event-api/db-event-api.service";
 
 @Injectable()
 export class TestGeneratorService {
-  constructor(private db: DB) {
+  constructor(private db: DB, private dbEventApi: DbEventApiService) {
   }
 
-  async getInfoFromDb(instruction: { scriptType: string; filePath: string; functionName: string; }) {
-    const response = await this.db.query(`select * from instrumentedEvent 
-                      where scripttype = '${instruction.scriptType}'
-                            and filepath = '${instruction.filePath}'
-                            and functionname = '${instruction.functionName}'
-                      order by fired,line`);
-    const variables: InstrumentedEvent[] = response.map(elem => {
-      return {
-        script: elem['scripttype'],
-        type: elem['nttype'],
-        value: elem['value']['content'],
-        line: elem['line'],
-        function: elem['functionname'],
-        file: elem['filepath'],
-        timestamp: elem['fired'],
-        other: elem['other']
-      }
-    })
-
-    let routineList: { routine: InstrumentedEvent[] }[] = [];
+  async getRoutines(request: { scriptType: string; filePath: string; functionName: string; }) {
+    const variables: InstrumentedEvent[] = await this.dbEventApi.getAllRoutinesFromDb(request)
+    let routines: { routine: InstrumentedEvent[] }[] = [];
     let routineBuffer: InstrumentedEvent[] = [];
     for (const variable of variables) {
       if (variable.type == 'text') {
-        routineList.push({routine: routineBuffer.splice(0)})
+        let routine = routineBuffer.splice(0)
+        if (routine.length) {
+          routines.push({routine: routine})
+        }
       }
       routineBuffer.push(variable)
     }
-    if (response.length) {
+    routines.push({routine: routineBuffer.splice(0)})
+    if (variables.length) {
       return {
-        scriptType: response[0]['scripttype'],
-        scriptData: routineList
+        scriptType: variables[0].script,
+        scriptData: routines
       }
     } else {
       return {
         scriptType: '',
-        scriptData: routineList
+        scriptData: routines
       }
     }
   }
