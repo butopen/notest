@@ -22,7 +22,7 @@ describe(`Testing Instrumentation Functions`, () => {
     import {testFunctionInstrumented} from "./instrumentation/test"
     
     export function testFunction(x:number, y:number) {
-        if( instrumentationRules.check() ) {return testFunctionInstrumented(x,y)}
+        if( useInstrumented_testFunction()) {return testFunctionInstrumented(x,y)}
         return x + y
     }
     

@@ -93,9 +93,10 @@ export class FunctionInstrumenter {
   }
 
   private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile, functionName: string, wrapFile: SourceFile) {
-    if (sourceFunction.getStatements()[0]!.getText().includes('instrumentationRules')) {
-      sourceFunction.removeStatement(0)
-    }
+    sourceFunction
+      .getStatements()
+      .filter((statement) => statement.getText().includes(`useInstrumented_${functionName}()`))
+      .forEach((statement) => statement.remove())
     sourceFile.getImportDeclarations().forEach(imp => {
       if (imp.getImportClause()) {
         if (imp.getImportClause()!.getText().includes(`${functionName}Instrumented`) || imp.getImportClause()!.getText().includes(`useInstrumented_${functionName}`)) {
