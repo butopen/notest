@@ -3,7 +3,7 @@ import {InstrumentStatementInterface} from "./statements-instrumenters/instrumen
 import {VariableInstrumenter} from "./statements-instrumenters/variable-instrumenter";
 import {ExpressionInstrumenter} from "./statements-instrumenters/expression-instrumenter";
 import {ReturnInstrumenter} from "./statements-instrumenters/return-instrumenter";
-import {collectorCreator, relativePathForCollectorMap} from "@butopen/notest-collector";
+import {collectorCreator, relativePathFromSource} from "@butopen/notest-collector";
 
 export class InstrumenterUtils {
   private readonly type: string;
@@ -59,14 +59,14 @@ export class InstrumenterUtils {
     const sourceFilePath = sourceScript.getSourceFile().getFilePath().slice(0, -3)
     const functionName = sourceScript.getName()
     const checkFunction = wrapFile.addFunction({name: `useInstrumented_${functionName}`, isExported: true})
-    checkFunction.addStatements(`return instrumentationRules.check( {path: '${relativePathForCollectorMap(sourceFilePath)}', name: '${sourceScript.getName()}'})`)
+    checkFunction.addStatements(`return instrumentationRules.check( {path: '${relativePathFromSource(sourceFilePath)}', name: '${sourceScript.getName()}'})`)
   }
 
   addCheckFunctionInInstrumentedMethodFile(wrapFile: SourceFile, sourceScript: MethodDeclaration, className: string) {
     const sourceFilePath = sourceScript.getSourceFile().getFilePath().slice(0, -3)
     const functionName = sourceScript.getName()
     const checkFunction = wrapFile.addFunction({name: `useInstrumented_${functionName}`, isExported: true})
-    checkFunction.addStatements(`return instrumentationRules.check( {path: '${relativePathForCollectorMap(sourceFilePath)}', name: '${className + '.' + sourceScript.getName()}'})`)
+    checkFunction.addStatements(`return instrumentationRules.check( {path: '${relativePathFromSource(sourceFilePath)}', name: '${className + '.' + sourceScript.getName()}'})`)
   }
 
   instrumentBody(wrapScript: FunctionDeclaration, filePath: string, scriptName: string) {

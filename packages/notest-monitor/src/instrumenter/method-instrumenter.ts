@@ -1,7 +1,7 @@
 import {FunctionDeclaration, MethodDeclaration, Project, SourceFile} from "ts-morph";
 import {ImportInstrumenter} from "./instrumenter-utils/import-instrumenter";
 import {InstrumenterUtils} from "./instrumenter-utils/instrumenter.utils";
-import {instrumentationRules, relativePathForCollectorMap} from "@butopen/notest-collector"
+import {instrumentationRules, relativePathFromSource} from "@butopen/notest-collector"
 
 export class MethodInstrumenter {
   private project: Project;
@@ -56,7 +56,7 @@ export class MethodInstrumenter {
 
     instrumenterUtils.handleInFileFunctions(sourceFile, wrapFile)
     instrumentationRules.updateMapRules({
-      path: relativePathForCollectorMap(sourceFile.getFilePath().slice(0, -3)),
+      path: relativePathFromSource(sourceFile.getFilePath().slice(0, -3)),
       name: className + '.' + methodName
     }, true)
     wrapFile.organizeImports()

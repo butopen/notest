@@ -1,4 +1,4 @@
-import {relativePathForCollectorMap} from "./shared/relative-path.util";
+import {relativePathFromSource} from "./shared/relative-path.util";
 
 class CollectorCreator {
 
@@ -10,7 +10,7 @@ class CollectorCreator {
       value: {content: ${variableToCollect}},
       line: ${line},
       function: this.constructor.name + "." + '${functionName}',
-      file: '${relativePathForCollectorMap(filePath)}',
+      file: '${relativePathFromSource(filePath)}',
       timestamp: Date.now(),
       other: ${other}
     })`
@@ -21,7 +21,7 @@ class CollectorCreator {
       value: {content: ${variableToCollect}},
       line: ${line},
       function: '${functionName}',
-      file: '${relativePathForCollectorMap(filePath)}',
+      file: '${relativePathFromSource(filePath)}',
       timestamp: Date.now(),
       other: ${other}
     })`
