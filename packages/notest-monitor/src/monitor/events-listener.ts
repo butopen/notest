@@ -27,10 +27,6 @@ export class EventsListener {
 
   async listen() {
     this.watcher
-      .on('add', path => {
-        console.log("added file at " + path)
-        this.addFunctions(path)
-      })
       .on('change', path => {
         console.log("changed file at " + path)
         this.controlChanges(path)
@@ -40,15 +36,17 @@ export class EventsListener {
 
   async restartListen() {
     this.watcher = chokidar.watch(this.path, {
-      ignored: '**/instrumentation/**', // ignore dotfiles
+      ignored: '**/instrumentation/**',
       persistent: true
     });
     await this.listen()
   }
 
-  private addFunctions(pathFile: string) {
+  private async addFunctions(pathFile: string) {
+    await this.watcher.close()
     this.functionInstrumenter.instrumentFileFunctions(pathFile)
     this.methodInstrumenter.instrumentFileMethods(pathFile)
+    await this.restartListen()
   }
 
   private async controlChanges(pathFile: string) {
