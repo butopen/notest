@@ -1,4 +1,4 @@
-import {FunctionDeclaration, Project, SourceFile, SyntaxKind} from "ts-morph";
+import {FunctionExpression, Project, SourceFile, SyntaxKind} from "ts-morph";
 import {FunctionInstrumenter} from "../../src/instrumenter/function-instrumenter";
 
 
@@ -22,7 +22,6 @@ describe(`Testing Instrumentation Functions`, () => {
     import {testFunctionInstrumented} from "./instrumentation/test"
     
     export function testFunction(x:number, y:number) {
-        if( useInstrumented_testFunction()) {return testFunctionInstrumented(x,y)}
         return x + y
     }
     
@@ -34,8 +33,8 @@ describe(`Testing Instrumentation Functions`, () => {
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
     result.saveSync()
-    const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
-    expect(instFunction.getName()).toEqual("testFunctionInstrumented")
+    const instFunction = result.getFunctionOrThrow("instrument_testFunction")!.getDescendantsOfKind(SyntaxKind.FunctionExpression)[0]
+    expect(instFunction.getName()).toEqual("instrumentation")
     expect(instFunction.getParameters().map(p => p.getName()).join(",")).toEqual("x,y")
     expect(instFunction.getParameters().map(p => p.getType().getText()).join(",")).toEqual("number,number")
     controlStatementsNumber(instFunction, 1, 5, 2)
@@ -57,7 +56,7 @@ describe(`Testing Instrumentation Functions`, () => {
     const functionInstrumenter = new FunctionInstrumenter(project)
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
-    const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
+    const instFunction = result.getFunctionOrThrow("instrument_testFunction")!.getDescendantsOfKind(SyntaxKind.FunctionExpression)[0]
     controlStatementsNumber(instFunction, 2, 4, 1)
   })
 
@@ -81,9 +80,9 @@ describe(`Testing Instrumentation Functions`, () => {
     const functionInstrumenter = new FunctionInstrumenter(project)
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
-    const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
+    const instFunction = result.getFunctionOrThrow("instrument_testFunction")!.getDescendantsOfKind(SyntaxKind.FunctionExpression)[0]
     const numberStatementNestedInWhileStatement = result
-      .getFunctionOrThrow("testFunctionInstrumented")
+      .getFunctionOrThrow("instrument_testFunction")
       .getDescendantsOfKind(SyntaxKind.WhileStatement)[0]
       .getDescendantStatements().length
     expect(numberStatementNestedInWhileStatement).toBe(5)
@@ -108,7 +107,7 @@ describe(`Testing Instrumentation Functions`, () => {
     const functionInstrumenter = new FunctionInstrumenter(project)
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
-    const numberOfImports = result.getFunctionOrThrow("testFunctionInstrumented")
+    const numberOfImports = result.getFunctionOrThrow("instrument_testFunction")
       .getParent().getChildrenOfKind(SyntaxKind.ImportDeclaration).length
     expect(numberOfImports).toBe(2)
   })
@@ -130,7 +129,7 @@ describe(`Testing Instrumentation Functions`, () => {
     const functionInstrumenter = new FunctionInstrumenter(project)
 
     const result: SourceFile = functionInstrumenter.instrument(fileSource.getFilePath(), "testFunction")
-    const instFunction = result.getFunctionOrThrow("testFunctionInstrumented")
+    const instFunction = result.getFunctionOrThrow("instrument_testFunction")!.getDescendantsOfKind(SyntaxKind.FunctionExpression)[0]
     controlStatementsNumber(instFunction, 0, 7, 1)
   })
 
@@ -148,7 +147,7 @@ describe(`Testing Instrumentation Functions`, () => {
     }
   }
 
-  function controlStatementsNumber(functionInst: FunctionDeclaration, variable: number, expression: number, return_: number) {
+  function controlStatementsNumber(functionInst: FunctionExpression, variable: number, expression: number, return_: number) {
     expect(functionInst.getDescendantsOfKind(SyntaxKind.VariableStatement).length).toBe(variable)
     expect(functionInst.getDescendantsOfKind(SyntaxKind.ExpressionStatement).length).toBe(expression)
     expect(functionInst.getDescendantsOfKind(SyntaxKind.ReturnStatement).length).toBe(return_)
