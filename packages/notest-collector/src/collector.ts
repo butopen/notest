@@ -60,7 +60,7 @@ function catchCircularity(event: InstrumentedEvent) {
   try {
     JSON.stringify(event)
   } catch (errorCircularity) {
-    instrumentationRules.updateMapRules({path: event.file, name: event.function}, false)
+    instrumentationRules.updateMapRules({path: event.file.slice(0, -3), name: event.function}, false)
     console.log(event.function + 'not instrumentable')
   }
 }
