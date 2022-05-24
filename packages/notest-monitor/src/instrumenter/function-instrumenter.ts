@@ -51,7 +51,7 @@ export class FunctionInstrumenter {
     importInstrumenter.addImportsSourceFile(sourceFile, nameFunctionToImport, sourceFunction.getName())
 
     instrumentFunction.getBody()!
-      .replaceWithText(writer => writer.writeLine(`{return ${wrapFunction.getFullText()}}`))
+      .replaceWithText(writer => writer.write(`{return ${wrapFunction.getText()}}`))
 
     instrumenterUtils.handleInFileFunctions(sourceFile, wrapFile)
     instrumentationRules.updateMapRules({
@@ -98,7 +98,8 @@ export class FunctionInstrumenter {
     const handleAsync: string = sourceFunction.isAsync() ? "await" : ""
 
     sourceFile.addStatements(writer =>
-      writer.writeLine(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceFunction.getName()}()){/*@ts-ignore*/ ${sourceFunction.getName()} = ${handleAsync} instrument_${sourceFunction.getName()}()}`))
+      writer.writeLine(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceFunction.getName()}()){//@ts-ignore`)
+        .write(`${sourceFunction.getName()} = ${handleAsync} instrument_${sourceFunction.getName()}()}`))
   }
 
   private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile, functionName: string, wrapFile: SourceFile) {
