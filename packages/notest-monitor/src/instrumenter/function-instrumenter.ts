@@ -98,8 +98,7 @@ export class FunctionInstrumenter {
     const handleAsync: string = sourceFunction.isAsync() ? "await" : ""
 
     sourceFile.addStatements(writer =>
-      writer.writeLine(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceFunction.getName()}()){//@ts-ignore`)
-        .write(`${sourceFunction.getName()} = ${handleAsync} instrument_${sourceFunction.getName()}()}`))
+      writer.writeLine(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceFunction.getName()}()){(${sourceFunction.getName()} as any) = ${handleAsync} instrument_${sourceFunction.getName()}()}`))
   }
 
   private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile, functionName: string, wrapFile: SourceFile) {
