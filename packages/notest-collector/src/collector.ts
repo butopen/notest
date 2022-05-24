@@ -67,6 +67,6 @@ function catchCircularity(event: InstrumentedEvent) {
 
 function filterDataToNotInstrument(data: InstrumentedEvent[]) {
   return data.filter(event => {
-    instrumentationRules.check({path: event.file, name: event.function})
+    return instrumentationRules.check({path: event.file.slice(0, -3), name: event.function})
   });
 }

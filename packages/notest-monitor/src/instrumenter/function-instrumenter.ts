@@ -56,7 +56,7 @@ export class FunctionInstrumenter {
     instrumenterUtils.handleInFileFunctions(sourceFile, wrapFile)
     instrumentationRules.updateMapRules({
       path: relativePathForCollectorMap(sourceFile.getFilePath().slice(0, -3)),
-      name: sourceFile.getBaseName()
+      name: sourceFunction.getName()!
     }, true)
     wrapFile.organizeImports()
     wrapFile.formatText()
