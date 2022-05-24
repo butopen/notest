@@ -1,4 +1,5 @@
 import {SourceFile} from "ts-morph";
+import path from "path";
 
 export class ImportInstrumenter {
 
@@ -21,10 +22,22 @@ export class ImportInstrumenter {
         .write(`import {instrumentationRules} from '@butopen/notest-collector'`).newLine())
   }
 
-  addImportsSourceFile(sourceFile: SourceFile, nameWrapFunction, nameSourceFunction) {
+  addInstrumentationImportsFunction(file: SourceFile, nameWrapFunction, nameSourceFunction) {
 
-    sourceFile.insertStatements(0, writer => {
-      writer.write(`import {${nameWrapFunction},useInstrumented_${nameSourceFunction}} from './instrumentation/${sourceFile.getBaseNameWithoutExtension()}'`).newLine()
+    file.insertStatements(0, writer => {
+      writer.write(`import {${nameWrapFunction},useInstrumented_${nameSourceFunction}} from './instrumentation/${file.getBaseNameWithoutExtension()}'`).newLine()
+    })
+  }
+
+  addInstrumentationImportsMethod(sourceFile: SourceFile, file: SourceFile, wrapFile: SourceFile, nameWrapFunction, nameSourceFunction, className: string) {
+    const pathLogicFile = path.relative('./src', wrapFile.getFilePath()).replace(/\\/g, '/').slice(0, -3)
+    file.insertStatements(0, writer => {
+      writer.write(`import {${nameWrapFunction},useInstrumented_${nameSourceFunction}} from './${pathLogicFile}'`).newLine()
+    })
+
+    const pathSourceFile = path.relative('./src', sourceFile.getFilePath()).replace(/\\/g, '/').slice(0, -3)
+    file.insertStatements(0, writer => {
+      writer.write(`import {${className}} from './${pathSourceFile}'`).newLine()
     })
   }
 }

@@ -1,4 +1,4 @@
-import {FunctionDeclaration, MethodDeclaration, Project, SourceFile} from "ts-morph";
+import {MethodDeclaration, Project, SourceFile} from "ts-morph";
 import {ImportInstrumenter} from "./instrumenter-utils/import-instrumenter";
 import {InstrumenterUtils} from "./instrumenter-utils/instrumenter.utils";
 import {instrumentationRules, relativePathFromSource} from "@butopen/notest-collector"
@@ -25,7 +25,8 @@ export class MethodInstrumenter {
       sourceMethod,
       wrapFile,
       wrapFunction,
-      instrumentFunction
+      instrumentFunction,
+      instrumentLogicFile
     } = this.initialize(sourceFilePath, className, methodName)
 
     const importInstrumenter = new ImportInstrumenter()
@@ -47,9 +48,9 @@ export class MethodInstrumenter {
     instrumenterUtils.addFullTextCollector(wrapFunction, methodName, sourceMethod.getFullText(), sourceFilePath)
     instrumenterUtils.wrapInTryCatch(wrapFunction, sourceFilePath, methodName)
     instrumenterUtils.addCheckFunctionInInstrumentedMethodFile(wrapFile, sourceMethod, className)
-    this.addCallInSourceFile(sourceMethod, className, sourceFile)
+    this.addCallInLogicFile(sourceMethod, className, instrumentLogicFile)
     const nameFunctionToImport = 'instrument_' + sourceMethod.getName()
-    importInstrumenter.addImportsSourceFile(sourceFile, nameFunctionToImport, sourceMethod.getName())
+    importInstrumenter.addInstrumentationImportsMethod(sourceFile, instrumentLogicFile, wrapFile, nameFunctionToImport, sourceMethod.getName(), className)
     const handleAsync = sourceMethod.isAsync() ? "async" : ""
     instrumentFunction.getBody()!
       .replaceWithText(`{${className}.prototype.${methodName} = ${handleAsync} ${wrapFunction.getText()}}`)
@@ -62,16 +63,20 @@ export class MethodInstrumenter {
     wrapFile.organizeImports()
     wrapFile.formatText()
     this.project.saveSync()
-    console.log("ended")
+    console.log("done")
     return wrapFile
   }
 
   private initialize(sourceFilePath: string, className: string, methodName: string) {
+    let instrumentLogicFile = this.project.getSourceFile(process.cwd() + '/src/instrumentLogic.ts')
+    if (!instrumentLogicFile) {
+      instrumentLogicFile = this.project.createSourceFile(process.cwd() + '/src/instrumentLogic.ts')
+    }
+
     const sourceFile = this.project.getSourceFileOrThrow(sourceFilePath)
     const pathWrapFile = sourceFile.getDirectoryPath() + '/instrumentation/' + sourceFile.getBaseName()
     const wrapFunctionName = 'instrument_' + methodName
     let wrapFile = this.project.getSourceFile(pathWrapFile)
-    let instrumentFunction: FunctionDeclaration
 
     if (!wrapFile) {
       wrapFile = this.project.createSourceFile(pathWrapFile)
@@ -81,28 +86,27 @@ export class MethodInstrumenter {
         wrapFile.organizeImports()
       }
     }
-    instrumentFunction = wrapFile.addFunction({name: wrapFunctionName, isExported: true})
+    let instrumentFunction = wrapFile.addFunction({name: wrapFunctionName, isExported: true})
     instrumentFunction.addParameters([{name: className}])
 
     const wrapFunction = instrumentFunction.addFunction({name: undefined})
-
     const sourceMethod = sourceFile.getClassOrThrow(className).getMethodOrThrow(methodName)
-    this.cleanOnInit(sourceFile, className, methodName, wrapFile)
-    return {sourceFile, sourceMethod, wrapFile, wrapFunction, instrumentFunction}
+    this.cleanOnInit(className, methodName, wrapFile, instrumentLogicFile)
+    return {sourceFile, sourceMethod, wrapFile, wrapFunction, instrumentFunction, instrumentLogicFile}
   }
 
 
-  private addCallInSourceFile(sourceMethod: MethodDeclaration, className: string, sourceFile: SourceFile) {
-    sourceFile.addStatements(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceMethod.getName()}()){instrument_${sourceMethod.getName()}(${className})}`)
+  private addCallInLogicFile(sourceMethod: MethodDeclaration, className: string, logicFile: SourceFile) {
+    logicFile.addStatements(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceMethod.getName()}()){instrument_${sourceMethod.getName()}(${className})}`)
   }
 
-  private cleanOnInit(sourceFile: SourceFile, className: string, methodName: string, wrapFile: SourceFile) {
-    sourceFile.getStatements().forEach(stat => {
-      if (stat.getText().includes(`{instrument_${methodName}(${className})}`)) {
+  private cleanOnInit(className: string, methodName: string, wrapFile: SourceFile, instrumentedLogicFile: SourceFile) {
+    instrumentedLogicFile.getStatements().forEach(stat => {
+      if (stat.getText().includes(`{instrument_${methodName}(${className})}`) || stat.getText().includes(`{${className}}`)) {
         stat.remove()
       }
     })
-    sourceFile.getImportDeclarations().forEach(imp => {
+    instrumentedLogicFile.getImportDeclarations().forEach(imp => {
       if (imp.getImportClause()) {
         if (imp.getImportClause()!.getText().includes(`instrument_${methodName}`) || imp.getImportClause()!.getText().includes(`useInstrumented_${methodName}`)) {
           imp.getImportClause()!.getNamedImports().forEach(name => {

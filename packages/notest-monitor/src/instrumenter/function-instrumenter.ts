@@ -48,7 +48,7 @@ export class FunctionInstrumenter {
     this.addIfOnSourceFile(sourceFile, sourceFunction)
 
     const nameFunctionToImport = instrumentFunction.getName()
-    importInstrumenter.addImportsSourceFile(sourceFile, nameFunctionToImport, sourceFunction.getName())
+    importInstrumenter.addInstrumentationImportsFunction(sourceFile, nameFunctionToImport, sourceFunction.getName())
 
     instrumentFunction.getBody()!
       .replaceWithText(writer => writer.write(`{return ${wrapFunction.getText()}}`))
@@ -90,7 +90,7 @@ export class FunctionInstrumenter {
       isAsync: sourceFunction.isAsync()
     })
     wrapFunction = instrumentFunction.addFunction({name: 'instrumentation', isAsync: sourceFunction.isAsync()})
-    this.cleanOnInit(sourceFunction, sourceFile, functionName, wrapFile)
+    this.cleanOnInit(sourceFile, functionName, wrapFile)
     return {sourceFile, sourceFunction, wrapFile, wrapFunction, instrumentFunction}
   }
 
@@ -101,7 +101,7 @@ export class FunctionInstrumenter {
       writer.writeLine(`/* decorated by notest... just ignore -> */if(useInstrumented_${sourceFunction.getName()}()){(${sourceFunction.getName()} as any) = ${handleAsync} instrument_${sourceFunction.getName()}()}`))
   }
 
-  private cleanOnInit(sourceFunction: FunctionDeclaration, sourceFile: SourceFile, functionName: string, wrapFile: SourceFile) {
+  private cleanOnInit(sourceFile: SourceFile, functionName: string, wrapFile: SourceFile) {
     sourceFile
       .getStatements()
       .filter((statement) => statement.getText().includes(`useInstrumented_${functionName}()`))
