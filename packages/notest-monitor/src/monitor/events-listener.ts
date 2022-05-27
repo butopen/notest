@@ -42,13 +42,6 @@ export class EventsListener {
     await this.listen()
   }
 
-  private async addFunctions(pathFile: string) {
-    await this.watcher.close()
-    this.functionInstrumenter.instrumentFileFunctions(pathFile)
-    this.methodInstrumenter.instrumentFileMethods(pathFile)
-    await this.restartListen()
-  }
-
   private async controlChanges(pathFile: string) {
     await this.watcher.close()
     this.project.getSourceFiles().forEach((sourceFile) => sourceFile.refreshFromFileSystemSync())
