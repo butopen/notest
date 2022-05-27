@@ -1,0 +1,13 @@
+{
+  "src/adder": {
+    "Adder.doCalc": true,
+    "Adder.addVariable1": true,
+    "Adder.addVariable2": true,
+    "executeCalc": true
+  },
+  "src/calculator": {
+    "getVariableAtIndex": true,
+    "Calculator.execute": true,
+    "Calculator.getInfoOnVariable": true
+  }
+}
