@@ -19,25 +19,27 @@ class NoTestCollector {
     if (NoTestCollector.eventsToSend.length) {
       let data = NoTestCollector.eventsToSend.splice(0)
       data = filterDataToNotInstrument(data)
-      try {
-        console.log("sending events to db")
-        const rawResponse = await fetch("http://localhost:3000/api/instrumented-event", {
-          method: "POST",
-          headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(data)
-        });
-        const response = await rawResponse.json();
-        console.log(response)
-        if (!rawResponse.ok) {
+      if (data.length) {
+        try {
+          console.log("sending " + data.length + " events to db")
+          const rawResponse = await fetch("http://localhost:3000/api/instrumented-event", {
+            method: "POST",
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+          });
+          const response = await rawResponse.json();
+          console.log(response)
+          if (!rawResponse.ok) {
+            data.forEach(event => NoTestCollector.eventsToSend.push(event))
+          }
+        } catch (e2) {
           data.forEach(event => NoTestCollector.eventsToSend.push(event))
+          console.log("e : ", e2);
+          throw new Error("Could not send events");
         }
-      } catch (e2) {
-        data.forEach(event => NoTestCollector.eventsToSend.push(event))
-        console.log("e : ", e2);
-        throw new Error("Could not send events");
       }
     }
   }
@@ -49,7 +51,6 @@ class NoTestCollector {
   async collect(event: InstrumentedEvent) {
     catchCircularity(event)
     NoTestCollector.eventsToSend.push(event)
-    console.log("collecting: ", event)
   }
 }
 
